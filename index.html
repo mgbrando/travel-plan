@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Travel Plan</title>
+	<meta name="description" content="App used to find places to visit in a geographic location, that is of interest to the user.">
+	<link rel="stylesheet" type="text/css" href="https://necolas.github.io/normalize.css/5.0.0/normalize.css">
+	<link rel="stylesheet" type="text/css" href="styles/app.css">
+</head>
+<body>
+	<header class="main-header">Travel Plan</header>
+	<nav class="main-nav"></nav>
+	<main class="js-main-section">
+		<form id="js-search-form">
+			<header class="search-header">Search places of the world:</header>
+			<input class="js-search-input search-input" type="text" name="search-input" placeholder="e.g.: Japan">
+			<button class="search-submit" type="submit">Search</button>
+		</form>
+		<section class="js-images images">
+			
+		</section>
+		<section class="js-map map">
+		</section>
+		<section class="js-translation translation">
+			<header class="js-translator-header translator-header">Language Translator: Japanese</header>
+			<div class="hidden">
+				<form id="js-translation-form">
+					<div class="js-textarea-button translate-input-choice"><span>Text</span></div>
+					<div class="js-textarea-button translate-input-choice"><span>Speech</span></div>
+					<textarea class="js-textarea textarea" rows="8" cols="50" placeholder="Enter/Say text to be translated..."></textarea>
+				</form>
+			</div>
+		</section>
+	</main>
+	<footer></footer>
+	<script src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+	<script src="javascript/app.js"></script>
+</body>
+</html>
