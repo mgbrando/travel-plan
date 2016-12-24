@@ -42,7 +42,15 @@ function makeCORSrequest(urlWithParameters){
   	}
 }
 
-$(document).ready(function(){
-	
+//Handlers
+function handleHeaderClick(){
+	$('.js-translator-header').click(function(event){
+		$(this).children('.js-header-image').toggleClass('header-image-clicked');
+		$(this).siblings('.js-textbox').toggleClass('hidden');
+	});
+}
 
+$(document).ready(function(){
+
+	handleHeaderClick();
 });

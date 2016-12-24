@@ -1,7 +1,9 @@
 *{
 	box-sizing: border-box;
 }
-
+.hidden{
+	display: none;
+}
 .center{
 	margin: 0 auto;
 }
@@ -17,12 +19,12 @@
 	text-align: center;
 }
 section{
-	width: 100%;
-	min-height: 100px;
+	margin-bottom: 15px;
 }
-#js-search-form, #js-translation-form{
+#js-search-form, section{
 	width: 90%;
 	margin: 0 auto;
+	min-height: 100px;
 }
 #js-search-form{
 	text-align: center;
@@ -33,11 +35,61 @@ section{
 	margin-bottom: 15px;
 	border-bottom: 1px solid black;
 }
-.translator-header{
+.search-input, .search-submit{
+	padding: 5px;
+}
+/*.search-input{
+	border: 1px solid black;
+}*/
+.search-submit{
+	padding: 7px;
+	/*margin-top: -2px;*/
+}
+
+.translator-header, .translator-header-clicked{
 	height: 50px;
+	line-height: 50px;
 	font-size: 24px;
 	text-align: center;
+	margin-bottom: 15px;
+	/*padding-top: 10px;*/
+	/*padding-bottom: 10px;*/
+	/*vertical-align: middle;*/
 }
+.header-title, .header-image{
+	display: inline-block;
+}
+.header-title{
+	height: 28px;
+}
+/*.header-image{
+	vertical-align: middle;
+	padding-bottom: 5px;
+	margin-left: 15px;
+}*/
+.header-image{
+	background-image: url('../images/green-plus-4.png');
+	width: 28px;
+	height: 28px;
+	margin-left: 15px;
+	margin-bottom: -4px;
+}
+.header-image-clicked{
+	background-image: url('../images/red-minus-4.png');
+}
+/*.translator-header:after, .translator-header-clicked:after{
+	margin-left: 20px;
+	padding-top: 5px;
+	vertical-align: text-top;
+	margin-bottom: -10px;
+	padding-bottom: -10px;
+}
+.translator-header:after{
+	content: url('../images/green-plus-4.png');
+}
+.translator-header-clicked:after{
+	content: url('../images/red-minus-3.png');
+}*/
 .translate-input-choice{
 	padding: 2px;
 	margin: 0;
@@ -56,6 +108,7 @@ section{
 .textarea{
 	display: block;
 	width: 100%;
+	padding: 5px;
 }
 
 @media screen and (min-width: 400px){
