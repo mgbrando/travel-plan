@@ -45,7 +45,9 @@ section{
 	padding: 7px;
 	/*margin-top: -2px;*/
 }
-
+#search-map{
+	height: 400px;
+}
 .translator-header, .translator-header-clicked{
 	height: 50px;
 	line-height: 50px;

@@ -15,10 +15,16 @@
 			<input class="js-search-input search-input" type="text" name="search-input" placeholder="e.g.: Japan">
 			<button class="search-submit" type="submit">Search</button>
 		</form>
+		<section class="js-main-map main-map">
+			<div id="search-map">
+
+			</div>
+			<button class="js-find-images find-images" type="button">Retrieve Images</button>
+		</section>
 		<section class="js-images-section images-section">
 			<header class="js-image-header image-header">Search Results: </header>
-			<div class="js-image-listings image-listings">
-			</div>
+			<!--<div class="js-image-listings image-listings">
+			</div>-->
 		</section>
 		<section class="js-map map">
 		</section>
@@ -36,5 +42,7 @@
 	<footer></footer>
 	<script src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
 	<script src="javascript/app.js"></script>
+	<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDCz6gKlHvkMprHXZ5gYtJvhiS9aUbDY9o&callback=initMaps"
+    async defer></script>
 </body>
 </html>
