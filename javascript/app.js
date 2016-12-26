@@ -51,8 +51,8 @@ var flickr={
 			$.ajax({
 				type: "GET",
 				url: this.BASE_URL,
-				data: {method: 'flickr.photos.search', api_key: this.config.api_key, format: 'json', media: 'photos', tags: 'nature, museum, forest', sort: 'interestingness-desc', content_type: 1, accuracy: 11, has_geo: 2, lat: position.lat(), lon: position.lng(), extras: 'url_n'},
-				dataType: "jsonp",
+				data: {method: 'flickr.photos.search', api_key: this.config.api_key, format: 'json', media: 'photos', tags: 'nature, museum, forest, architecture, venue, scenery', sort: 'interestingness-desc', content_type: 1, accuracy: 11, has_geo: 2, lat: position.lat(), lon: position.lng(), extras: 'url_t'},
+				dataType: "jsonp"
 			});
 	},
 
@@ -175,7 +175,8 @@ function renderImages(imageData){
 	var images='';
 	var blackList={};
 	imageData.photos.photo.forEach(function(photo){
-		images+='<img src="'+photo.url_n+'" alt="'+photo.title+'">\n';
+		if(photo.url_t!=='undefined')
+			images+='<img src="'+photo.url_t+'" alt="'+photo.title+'">\n';
 		/*if(!blackList[photo.owner]){
 			blackList[photo.owner]=1;
 		}
@@ -188,7 +189,7 @@ function renderImages(imageData){
 		else{ console.log('Skipped: '+photo.owner); }*/
 	});
 	imageSection.append(images);
-	$('.js-images-section').html('').append(imageSection);
+	$('.js-images-section').empty().append(imageSection);
 }
 
 /*function createCORSRequest(method, url) {
@@ -238,12 +239,14 @@ function renderImages(imageData){
 //Handlers
 function handleSearchSubmit(){
 	$('#js-search-form').submit(function(event){
+		console.log('hi');
 		event.preventDefault();
 		var input = $(this).children('.js-search-input').val();
 		googleMaps.geocoder.geocode({address: input}, function(results, status){
           if (status === 'OK') {
             googleMaps.maps.searchMap.map.setCenter(results[0].geometry.location);
             googleMaps.maps.searchMap.marker.setPosition(results[0].geometry.location);
+            flickr.searchPhotosByGeography(googleMaps.maps.searchMap.marker.getPosition());
           } else {
             alert('Geocode was not successful for the following reason: ' + status);
           }		
@@ -251,7 +254,6 @@ function handleSearchSubmit(){
 		//instagram.searchPhotosByGeography(input);
 		//googleMaps.getMapByArea(input);
 		//console.log(googleMaps.maps.searchMap.marker.getPosition());
-		flickr.searchPhotosByGeography(googleMaps.maps.searchMap.marker.getPosition());
 	});
 }
 function handleImageRetrieval(){
