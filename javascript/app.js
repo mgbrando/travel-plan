@@ -51,7 +51,9 @@ var flickr={
 			$.ajax({
 				type: "GET",
 				url: this.BASE_URL,
-				data: {method: 'flickr.photos.search', api_key: this.config.api_key, format: 'json', media: 'photos', tags: 'nature, museum, forest, architecture, venue, scenery', sort: 'interestingness-desc', content_type: 1, accuracy: 11, has_geo: 2, lat: position.lat(), lon: position.lng(), extras: 'url_t'},
+				data: {method: 'flickr.photos.search', api_key: this.config.api_key, format: 'json', media: 'photos', 
+				tags: 'nature, museum, forest, architecture, venue, scenery', sort: 'interestingness-desc', content_type: 1, 
+				accuracy: 11, has_geo: 2, lat: position.lat(), lon: position.lng(), extras: 'url_t'},
 				dataType: "jsonp"
 			});
 	},
@@ -64,7 +66,28 @@ var flickr={
 var googleMaps={
 	MAPS_BASE_URL: 'https://maps.googleapis.com/maps/api/js',
 	GEOCODER_BASE_URL: 'https://maps.googleapis.com/maps/api/geocode/json',
+	PLACES_BASE_URL: 'https://maps.googleapis.com/maps/api/place',
+	PLACES_SEARCH: '/nearbysearch/json',
+	PLACES_DETAILS: '/details/json',
+	search_type: null,
+	place_id: null,
+	latlng: null,
 	geocoder: null,
+	placeService: null,
+	currentLocation: {	details: null,
+						language: null,
+						nearbyAttractions: null,
+						events: null,
+
+						init: function(options){
+							options=options || {};
+
+							this.details=details;
+							this.language=language;
+							this.nearbyAttractions=nearbyAttractions;
+							this.events=events;
+						}
+	},
 	maps: {searchMap: {map: null, marker: null}, imageMap: {map: null, marker: null}},
 	config:{},
 
@@ -73,16 +96,62 @@ var googleMaps={
 
 		this.config.api_key=options.api_key;
 	},
-	getMapByArea: function(area){
+	getPlaceDetails: function(place_id){
+		this.placeService.nearbySearch({location: this.place_id}, renderPlaceDetails);
+	},
+	getNearbyPlaces: function(){
+		this.placeService.nearbySearch({location: this.latlng}, renderNearbyPlaces);
+	}
+/*	getMapByArea: function(area){
 			$.ajax({
 				type: "GET",
 				url: this.GEOCODER_BASE_URL,
 				data: {key: this.config.api_key, address: area, callback: renderMap},
 				dataType: "jsonp"
 			});		
-	}
+	},*/
+/*	getNearbyPlaces: function(){
+			$.ajax({
+				type: "GET",
+				url: this.PLACES_BASE_URL+this.PLACES_SEARCH,
+				data: {key: this.config.api_key, location: this.latlng},
+				dataType: "jsonp",
+				success: renderPlaces
+			});	
+	},
+	getPlaceDetails: function(place_id){
+			$.ajax({
+				type: "GET",
+				url: this.PLACES_BASE_URL+this.PLACES_SEARCH,
+				data: {key: this.config.api_key, place_id: place_id},
+				dataType: "jsonp",
+				success: renderPlaceDetails
+			});			
+	}*/
 };
+/*function Place(details){
+	this.details=details;
+}
+function CurrentLocation(){
 
+}
+CurrentLocation.prototype=new Place();*/
+
+/*var currentLocation = {
+	details: null,
+	language: null,
+	nearbyAttractions: null,
+	events: null,
+
+	init: function(options){
+		options=options || {};
+
+		this.details=details;
+		this.language=language;
+		this.nearbyAttractions=nearbyAttractions;
+		this.events=events;
+	}
+};*/
 /*var googleGeocoder={
 	BASE_URL: 'https://maps.googleapis.com/maps/api/geocode/json',
 	//geocoder: null,
@@ -102,7 +171,86 @@ var googleMaps={
 			});		
 	}
 };*/
-function renderMap(geocode){
+function renderPlaceDetails(results, status){
+	if(status === 'OK'){
+
+	}
+	else {
+        alert('Geocode was not successful for the following reason: ' + status);
+    }	
+}
+
+function renderNearbyPlaces(results, status){
+	if(status === 'OK'){
+
+	}
+	else {
+        alert('Geocode was not successful for the following reason: ' + status);
+    }	
+}
+function getPositionDetails(type, position){
+	var request={};
+	request[type]=position;
+	googleMaps.search_type=type;
+	googleMaps.geocoder.geocode(request, renderMarkersAndImages);
+}
+function getMarkerPositionDetails(location){
+
+}
+function renderMarkersAndImages(results, status){
+    if (status === 'OK') {
+    	googleMaps.maps.searchMap.map.setCenter(results[0].geometry.location);
+    	if(googleMaps.search_type==='address')
+        	googleMaps.maps.searchMap.marker.setPosition(results[0].geometry.location);
+        //$('#js-search-form').children('.js-search-input').val('');
+        flickr.searchPhotosByGeography(googleMaps.maps.searchMap.marker.getPosition());
+        googleMaps.place_id=results[0].place_id;
+        console.log(googleMaps.place_id);
+    } else {
+            alert('Geocode was not successful for the following reason: ' + status);
+    }	
+}
+function renderPosition(input){
+	//var place_id='';
+	var places=null;
+	if(typeof input === 'string'){
+		getPositionDetails('address', input);
+		/*googleMaps.geocoder.geocode({address: input}, function(results, status){
+          if (status === 'OK') {
+            googleMaps.maps.searchMap.map.setCenter(results[0].geometry.location);
+            googleMaps.maps.searchMap.marker.setPosition(results[0].geometry.location);
+            //$('#js-search-form').children('.js-search-input').val('');
+            flickr.searchPhotosByGeography(googleMaps.maps.searchMap.marker.getPosition());
+            googleMaps.place_id=results[0].place_id;
+            console.log(googleMaps.place_id);
+          } else {
+            alert('Geocode was not successful for the following reason: ' + status);
+          }		
+		});*/
+	}
+	else{
+		getPositionDetails('location', input);
+  	  	/*googleMaps.geocoder.geocode({location: input}, function(results, status){
+          if (status === 'OK') {
+            googleMaps.maps.searchMap.map.setCenter(googleMaps.latlng);
+            //googleMaps.maps.searchMap.marker.setPosition(results[0].geometry.location);
+            console.log(results[0].formatted_address);
+            $('#js-search-form').children('.js-search-input').val(results[0].formatted_address);
+            flickr.searchPhotosByGeography(googleMaps.maps.searchMap.marker.getPosition());
+            googleMaps.place_id=results[0].place_id;
+            console.log(googleMaps.place_id);
+          } else {
+            alert('Geocode was not successful for the following reason: ' + status);
+          }		
+		});*/
+	}
+	//console.log(googleMaps.place_id);
+	//var details=googleMaps.getPlaceDetails(place_id);
+	//console.log('past details '+details);
+	//var nearbyAttractions=googleMaps.getNearbyPlaces();
+	//googleMaps.currentLocation=
+}
+/*function renderMap(geocode){
 	console.log(geocode);
 	googleMaps.geocoder = new google.maps.Geocoder();
     var latlng = new google.maps.LatLng(geocode.geometry.location[0], geocode.geometry.location[1]);
@@ -112,34 +260,31 @@ function renderMap(geocode){
     }
     googleMaps.maps.searchMap.map = new google.maps.Map(document.getElementById('search-map'), mapOptions);
 
+}*/
+function renderPlaces(response){
+	console.log(response);
+	var places=response[1];
+	console.log(places);
+}
+function renderPlaceDetails(response){
+	console.log(response);
+	console.log(response[1].name);
 }
 function initMaps(response){
-      /*function initMap() {
-        var uluru = {lat: -25.363, lng: 131.044};
-        var map = new google.maps.Map(document.getElementById('search-map'), {
-          zoom: 4,
-          center: uluru
-        });
-        var marker = new google.maps.Marker({
-          position: uluru,
-          map: map
-        });
-      }*/
-      var coordinates={lat: 40.7128, lng: 139.6917};
-      //var map=googleMaps.maps.searchMap.map;
-      //var marker=googleMaps.maps.searchMap.marker;
-      var latlng = new google.maps.LatLng(40.7128, 139.6917);
+      googleMaps.latlng = {lat: 36.204824, lng: 138.252924}; 
       googleMaps.geocoder = new google.maps.Geocoder();
       googleMaps.maps.searchMap.map=new google.maps.Map(document.getElementById('search-map'),
-			{center: coordinates,
+			{center: googleMaps.latlng,
 			zoom: 8});
 
       googleMaps.maps.searchMap.marker=new google.maps.Marker({
-          position: coordinates,
+          position: googleMaps.latlng,
           map: googleMaps.maps.searchMap.map,
           draggable: true,
           title: 'Chosen Location'
         });
+
+      googleMaps.placeService = new google.maps.places.PlacesService(googleMaps.maps.searchMap.map);
 
       /*googleMaps.maps.searchMap.marker.addListener('mouseup', function(event){
       	coordinates.lat=this.getPosition().lat();
@@ -158,13 +303,18 @@ function initMaps(response){
       marker.addListener('click', function() {
     	map.setCenter(marker.getPosition());
   	  });
+  	  var startPosition;
+  	  var endPosition;
 
-  	  marker.addListener('mousedown', function(){
-  	  });
+  	  marker.addListener('mousedown', function(event){
 
-  	  marker.addListener('mouseup', function(event){
-  	  	marker.setPosition(event.latlng);
   	  });*/
+
+  	  googleMaps.maps.searchMap.marker.addListener('dragend', function(event){
+  	  	googleMaps.latlng=googleMaps.maps.searchMap.marker.getPosition();
+  	  	renderPosition(googleMaps.latlng);
+  	  	//$('#js-search-form').children('.js-search-input').val('');
+  	  });
 }
 function jsonFlickrApi(json){
 	//console.log(json);
@@ -241,16 +391,10 @@ function handleSearchSubmit(){
 	$('#js-search-form').submit(function(event){
 		console.log('hi');
 		event.preventDefault();
+		googleMaps.latlng=googleMaps.maps.searchMap.marker.getPosition();
+		//googleMaps.geocoder.geocode(googleMaps.maps.searchMap.marker.getPosition);
 		var input = $(this).children('.js-search-input').val();
-		googleMaps.geocoder.geocode({address: input}, function(results, status){
-          if (status === 'OK') {
-            googleMaps.maps.searchMap.map.setCenter(results[0].geometry.location);
-            googleMaps.maps.searchMap.marker.setPosition(results[0].geometry.location);
-            flickr.searchPhotosByGeography(googleMaps.maps.searchMap.marker.getPosition());
-          } else {
-            alert('Geocode was not successful for the following reason: ' + status);
-          }		
-		});
+		renderPosition(input);
 		//instagram.searchPhotosByGeography(input);
 		//googleMaps.getMapByArea(input);
 		//console.log(googleMaps.maps.searchMap.marker.getPosition());
