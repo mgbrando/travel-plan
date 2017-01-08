@@ -73,7 +73,15 @@ var eventful={
 	}
 }
 var yandexTranslate={
-	BASE_URL: 'https://translate.yandex.net/api/v1.5/tr.json/translate',
+	BASE_URL: 'https://translate.yandex.net/api/v1.5/tr.json',
+	TRANSLATE_EXT: '/translate',
+	GETLANGS_EXT: '/getLangs',
+	current_location: {lat: 36.204824, lng: 138.252924},
+	current_language: 'ja',
+	attraction_translations: 0,
+	/*attraction_translation_done: false,
+	event_translations_done: false,*/
+	languages: {},
 	config: {},
 
 	init: function(options){
@@ -110,22 +118,58 @@ var yandexTranslate={
 			var deferred=$.Deferred();
 			$.ajax({
 				type: "GET",
-				url: this.BASE_URL,//+queryString,
+				url: this.BASE_URL+this.TRANSLATE_EXT,//+queryString,
 				data: {key: this.config.api_key, lang: this.config.user_language, options: 1, text: to_translate},
 				dataType: "jsonp",
 				/*jsonp: 'callback',
 				jsonpCallback: 'renderName',*/
-				success: function(results){renderDetail(results, property, elementNumber); deferred.resolve(property);}
+				success: function(results){renderTranslatedDetail(results, property, elementNumber); deferred.resolve(property);}
 			});
 			return deferred.promise();
-	}/*,
-	translateTextBox: function(text){
-
 	},
-	translateLocations: function(textArray){
-
-	}*/
-
+	translateTextBox: function(textToTranslate){
+			$.ajax({
+				type: "GET",
+				url: this.BASE_URL+this.TRANSLATE_EXT,//+queryString,
+				data: {key: this.config.api_key, lang: this.config.user_language+'-'+this.current_language, options: 1, text: textToTranslate},
+				dataType: "jsonp",
+				/*jsonp: 'callback',
+				jsonpCallback: 'renderName',*/
+				success: renderTextBoxTranslation
+			});
+	},
+	getTranslationHeaderLanguage: function(){
+			$.ajax({
+				type: "GET",
+				url: this.BASE_URL+this.GETLANGS_EXT,//+queryString,
+				data: {key: this.config.api_key, ui: this.config.user_language},
+				dataType: "jsonp",
+				/*jsonp: 'callback',
+				jsonpCallback: 'renderName',*/
+				success: function(results){console.log(results); renderTranslationHeader(results.langs[yandexTranslate.current_language]);}
+			});
+	},
+	speakTranslation: function(){
+			$.ajax({
+				type: "GET",
+				url: this.BASE_URL+this.GETLANGS_EXT,//+queryString,
+				data: {key: this.config.api_key, ui: this.config.user_language},
+				dataType: "jsonp",
+				/*jsonp: 'callback',
+				jsonpCallback: 'renderName',*/
+				success: function(results){
+					var language=results.langs[yandexTranslate.current_language];
+					if(language==='English')
+						language='US English';
+						responsiveVoice.speak($('.js-text-translation').text(), language+' Female');
+				}
+			});
+	},
+	locationChanged: function(currentLocation){
+		if(this.current_location!==currentLocation)
+			return true;
+		return false;
+	}
 };
 /*var googleTranslate={
 	TRANSLATE_BASE_URL: 'https://translation.googleapis.com/language/translate/v2',
@@ -255,7 +299,7 @@ var googleMaps={
 			//yandexTranslate.translateRequest('name', place.name, elementNumber).done(yandexTranslate.translateRequest('vicinity', place.vicinity, elementNumber).done(yandexTranslate.translateRequest('type', place.types[0], elementNumber)));
 			var promise=yandexTranslate.translateRequest('name', place.name, elementNumber);
 			promise.then(function(status){var promise2=yandexTranslate.translateRequest('vicinity', place.vicinity, elementNumber);
-						promise2.then(function(status){yandexTranslate.translateRequest('type', place.types[0], elementNumber)});});
+						promise2.then(function(status){$('.js-entertainment-list-'+elementNumber).append('<li><span class="property">TYPE</span>: '+place.types[0].replace(/_/g, ' ')+'</li>');/*yandexTranslate.translateRequest('type', place.types[0], elementNumber)*/});});
 			/*$.when(yandexTranslate.translateRequest('name', place.name, elementNumber))
 				.then($.when(yandexTranslate.translateRequest('vicinity', place.vicinity, elementNumber))
 					.then(yandexTranslate.translateRequest('type', place.types[0], elementNumber)));*/
@@ -346,21 +390,51 @@ var googleMaps={
 			});			
 	}*/
 };
-function renderDetail(results, property, elementNumber){
-	var detail=results.text[0];
-	if(property==='type'){
-		property=property.replace(/_/g, ' ');
-		detail=detail.replace(/_/g, ' ');
+function renderTranslationHeader(language){
+	console.log(language);
+	$('.js-language').text(language);
+}
+function getTranslatedLanguage(translatedLanguages){
+	var maxUsedLanguage='en';
+	for(var language in translatedLanguages){
+		console.log(language);
+		if(translatedLanguages[language] > translatedLanguages[maxUsedLanguage])
+			maxUsedLanguage=language;
 	}
+	yandexTranslate.current_language=maxUsedLanguage;
+	yandexTranslate.getTranslationHeaderLanguage();
+	console.log(maxUsedLanguage);
+}
+function analyzeLanguage(results){
+	if(yandexTranslate.locationChanged(googleMaps.latlng)){
+		yandexTranslate.current_location=googleMaps.latlng;
+		yandexTranslate.event_translations=0;
+		console.log('YUP');
+		yandexTranslate.languages={};	
+	}
+	if(yandexTranslate.languages[results.detected.lang])
+		yandexTranslate.languages[results.detected.lang]++;
+	else
+		yandexTranslate.languages[results.detected.lang]=1;
 
-	$('.js-entertainment-list-'+elementNumber).append('<li><span class="property">'+property.toUpperCase()+'</span>: '+detail+'</li>');
+	yandexTranslate.event_translations++;
+	if(yandexTranslate.attraction_translations===10){
+		getTranslatedLanguage(yandexTranslate.languages);
+	}
+	console.log(yandexTranslate.languages);
+}
+function renderTranslatedDetail(results, property, elementNumber){
+	//console.log(results);
+
+	$('.js-entertainment-list-'+elementNumber).append('<li><span class="property">'+property.toUpperCase()+'</span>: '+results.text[0]+'</li>');
+	analyzeLanguage(results);
 	/*console.log(results);
 	console.log(results.text[0]);
 	return results.text[0];*/
 }
 function renderPlaceDetails(results, status){
 	if(status === 'OK'){
-		$('.js-description')
+		//$('.js-description')
 	}
 	else {
         alert('Geocode was not successful for the following reason: ' + status);
@@ -437,8 +511,9 @@ function getPositionDetails(type, position){
 function getMarkerPositionDetails(location){
 
 }
-function renderTextBoxTranslation(results, status){
-
+function renderTextBoxTranslation(results){
+		//console.log(results.text[0]);
+		$('.js-text-translation').text(results.text[0]);
 }
 function renderLocationTranslations(results, status){
 
@@ -459,10 +534,12 @@ function renderMarkersAndImages(results, status){
         googleMaps.getNearbyPlaces(results[0].geometry.location);
         //googleMaps.getNearbyPlaces();
         googleMaps.geocoder.geocode({'placeId': results[0].place_id}, function(results, status){
-        	if(status==='OK')
+        	if(status==='OK'){
+        		console.log(results[0]);
+        		$('.js-search-input').val(results[0].formatted_address);
         		eventful.getNearbyEvents(results[0].formatted_address);
+        	}
         });
-
         //$('.js-top-attractions').empty().append(topAttractionsTemplate);
     } else {
             alert('Geocode was not successful for the following reason: ' + status);
@@ -579,6 +656,18 @@ function handleHeaderClick(){
 		$(this).siblings('.js-textbox').toggleClass('hidden');
 	});
 }
+function handleTextTranslation(){
+	$('#js-translation-form').submit(function(event){
+		event.preventDefault();
+		var textToTranslate=$(this).children('.js-textarea').val().trim();
+		yandexTranslate.translateTextBox(textToTranslate);
+	});
+	$('.js-text-box').on('click', '.js-text-to-speech', function(event){
+		responsiveVoice.setDefaultVoice("US English Female");
+		yandexTranslate.speakTranslation();
+	});
+	console.log(responsiveVoice.getVoices());
+}
 
 $(document).ready(function(){
 	var flickerOptions={api_key: 'fce2cc179918f3569a6ceb86165c46c3'};
@@ -597,6 +686,7 @@ $(document).ready(function(){
 	handleSearchSubmit();
 	handleImageRetrieval();
 	handleHeaderClick();
+	handleTextTranslation();
 	//handleEntertainment
 });
 

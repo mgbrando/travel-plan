@@ -41,19 +41,24 @@
 		<!--<section class="js-map map">
 		</section>-->
 		<section class="js-translation translation">
-			<header class="js-translator-header translator-header">Language Translator: Japanese <div class="js-header-image header-image"></div><!--<img class="js-header-image header-image" src="images/green-plus-4.png" alt="show translator"/>--></header>
+			<header class="js-translator-header translator-header">Language Translator: <span class="js-language language">Japanese</span><div class="js-header-image header-image"></div><!--<img class="js-header-image header-image" src="images/green-plus-4.png" alt="show translator"/>--></header>
 			<div class="js-textbox hidden">
 				<form id="js-translation-form">
 					<div class="js-textarea-button translate-input-choice"><span>Text</span></div>
 					<div class="js-textarea-button translate-input-choice"><span>Speech</span></div>
 					<textarea class="js-textarea textarea" rows="8" cols="50" placeholder="Enter/Say text to be translated..."></textarea>
+					<button type='submit'>Submit Text</button>
 				</form>
+				<header>Translation:</header>
+				<p class="js-text-translation text-translation"></p>
+				<button class="js-text-to-speech text-to-speech"type="button">Play Translation</button>
 			</div>
 		</section>
 	</main>
 	<footer></footer>
 	<script src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
 	<script src="javascript/app.js"></script>
+	<script src='https://code.responsivevoice.org/responsivevoice.js'></script>
 	<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDCz6gKlHvkMprHXZ5gYtJvhiS9aUbDY9o&libraries=places&callback=initMaps"
     async defer></script>
 </body>
