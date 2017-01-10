@@ -3,6 +3,15 @@
 //const Translate = require('@google/translate');
 
 var photoTemplate='<img src="" alt="">';
+/*var imageLinksTemplate= '<a href="images/banana.jpg" title="Banana" data-gallery>'+
+        					'<img src="images/thumbnails/banana.jpg" alt="Banana">'+
+    					'</a>'+
+    					'<a href="images/apple.jpg" title="Apple" data-gallery>'+
+        					'<img src="images/thumbnails/apple.jpg" alt="Apple">'+
+    					'</a>'+
+    					'<a href="images/orange.jpg" title="Orange" data-gallery>'+
+        					'<img src="images/thumbnails/orange.jpg" alt="Orange">'+
+    					'</a>';*/
 var descriptionTemplate='<header>Location: <span class="js-location location"></span></header>'+
 						'';
 var entertainmentTemplate=	'<section class="js-entertainment entertainment">'+
@@ -16,6 +25,7 @@ var eventsTemplate='<section class="js-events events">'+
 var flickr={
 	BASE_URL: 'https://api.flickr.com/services/rest/',
 	config: {},
+	imageArray: [],
 	init: function(options){
 		options = options || {};
 
@@ -39,7 +49,7 @@ var flickr={
 				url: this.BASE_URL,
 				data: {method: 'flickr.photos.search', api_key: this.config.api_key, format: 'json', media: 'photos', 
 				tags: 'nature, museum, forest, architecture, venue, scenery', sort: 'interestingness-desc', content_type: 1, 
-				accuracy: 11, has_geo: 2, lat: position.lat(), lon: position.lng(), extras: 'url_t'},
+				accuracy: 11, has_geo: 2, lat: position.lat(), lon: position.lng(), extras: 'url_t, url_n'},
 				dataType: "jsonp"
 			});
 	},
@@ -77,7 +87,8 @@ var yandexTranslate={
 	TRANSLATE_EXT: '/translate',
 	GETLANGS_EXT: '/getLangs',
 	current_location: {lat: 36.204824, lng: 138.252924},
-	current_language: 'ja',
+	current_language: 'Japanese',
+	current_language_sn: 'ja',
 	attraction_translations: 0,
 	/*attraction_translation_done: false,
 	event_translations_done: false,*/
@@ -131,7 +142,7 @@ var yandexTranslate={
 			$.ajax({
 				type: "GET",
 				url: this.BASE_URL+this.TRANSLATE_EXT,//+queryString,
-				data: {key: this.config.api_key, lang: this.config.user_language+'-'+this.current_language, options: 1, text: textToTranslate},
+				data: {key: this.config.api_key, lang: this.config.user_language+'-'+this.current_language_sn, options: 1, text: textToTranslate},
 				dataType: "jsonp",
 				/*jsonp: 'callback',
 				jsonpCallback: 'renderName',*/
@@ -146,9 +157,57 @@ var yandexTranslate={
 				dataType: "jsonp",
 				/*jsonp: 'callback',
 				jsonpCallback: 'renderName',*/
-				success: function(results){console.log(results); renderTranslationHeader(results.langs[yandexTranslate.current_language]);}
+				success: function(results){
+					console.log(results.langs);
+					/*Object.keys(results.langs).forEach(function(key){
+						console.log('LANGUAGES: '+results.langs); 
+					});*/
+					renderTranslationHeader(results.langs[yandexTranslate.current_language]);
+				}
 			});
 	},
+	getLanguageName: function(){
+		var deferred=$.Deferred();
+			$.ajax({
+				type: "GET",
+				url: this.BASE_URL+this.GETLANGS_EXT,//+queryString,
+				data: {key: this.config.api_key, ui: this.config.user_language},
+				dataType: "jsonp",
+				/*jsonp: 'callback',
+				jsonpCallback: 'renderName',*/
+				success: function(results){
+					console.log(results.langs);
+					/*Object.keys(results.langs).forEach(function(key){
+						console.log('LANGUAGES: '+results.langs); 
+					});*/
+					console.log(results.langs[yandexTranslate.current_language_sn]);
+					yandexTranslate.current_language=results.langs[yandexTranslate.current_language_sn];
+					//renderTranslationHeader(results.langs[yandexTranslate.current_language]);
+					deferred.resolve('OK');
+				}
+			});
+		return deferred.promise();
+	},
+	//FIX THIS geocode is giving a weird number instead of a 2 letter short_name
+	setCurrentLanguage: function(countryCode){
+			var deferred=$.Deferred();
+			$.ajax({
+				type: "GET",
+				url: 'https://restcountries.eu/rest/v1/alpha?codes='+countryCode,//+queryString,
+				//dataType: "jsonp",
+				/*jsonp: 'callback',
+				jsonpCallback: 'renderName',*/
+				success: function(results){
+					console.log(results);
+					yandexTranslate.current_language_sn=results[0].languages[0];
+					//yandexTranslate.current_language=results[0].languages[0];
+					var promise=yandexTranslate.getLanguageName();
+					promise.then(function(status){deferred.resolve('OK');});
+				}
+			});
+			return deferred.promise();
+	},
+	//https://restcountries.eu/rest/v1/lang/et
 	speakTranslation: function(){
 			$.ajax({
 				type: "GET",
@@ -158,7 +217,7 @@ var yandexTranslate={
 				/*jsonp: 'callback',
 				jsonpCallback: 'renderName',*/
 				success: function(results){
-					var language=results.langs[yandexTranslate.current_language];
+					var language=results.langs[yandexTranslate.current_language_sn];
 					if(language==='English')
 						language='US English';
 						responsiveVoice.speak($('.js-text-translation').text(), language+' Female');
@@ -234,7 +293,7 @@ var googleMaps={
 							this.events=events;
 						}
 	},
-	maps: {searchMap: {map: null, marker: null, placesMarkers: []}, imageMap: {map: null, marker: null}},
+	maps: {searchMap: {map: null, marker: null, placeMarkersOn: false, eventMarkersOn: false, placesMarkers: [], eventsMarkers: []}, imageMap: {map: null, marker: null}},
 	config:{},
 
 	init: function(options){
@@ -316,7 +375,7 @@ var googleMaps={
 				googleMaps.maps.searchMap.placesMarkers[i] = new google.maps.Marker({
           		position: places[i].geometry.location,
           		icon: this.ICON_BASE_URL+(i+1)+'-'+this.icons.places,
-          		map: googleMaps.maps.searchMap.map,
+          		map: null,
           		draggable: false,
           		title: places[i].name
         		});
@@ -354,7 +413,7 @@ var googleMaps={
 				this.addEntertainmentDetails(places[i], i, attractionContent);
 			}
 			$('.js-entertainment').remove();
-			$('.js-top-attractions').append(attractionContent)
+			$('.js-top-attractions').append(attractionContent);
 		}	
 	},
 	removePlaceMarkers: function(){
@@ -362,6 +421,38 @@ var googleMaps={
 			this.maps.searchMap.placesMarkers[i].setMap(null);
 		}
 		this.maps.searchMap.placesMarkers = [];
+	},
+	toggleMarkers: function(markerType){
+		console.log(this.maps.searchMap.placesMarkers);
+		if(markerType==='places'){
+			if(this.maps.searchMap.placesMarkersOn){
+				this.hideMarkers(this.maps.searchMap.placesMarkers);
+				this.maps.searchMap.placesMarkersOn=false;
+			}
+			else{
+				this.showMarkers(this.maps.searchMap.placesMarkers);
+				this.maps.searchMap.placesMarkersOn=true;
+			}
+		}
+		else{
+			if(this.maps.searchMap.eventMarkersOn){
+				this.hideMarkers(this.maps.searchMap.eventMarkers);
+				this.maps.searchMap.placesMarkersOn=false;
+			}
+			else
+				this.showMarkers(this.maps.searchMap.eventMarkers);
+				this.maps.searchMap.placesMarkersOn=true;
+		}
+	},
+	showMarkers: function(markers){
+		markers.forEach(function(marker){
+			marker.setMap(googleMaps.maps.searchMap.map);
+		});
+	},
+	hideMarkers: function(markers){
+		markers.forEach(function(marker){
+			marker.setMap(null);
+		});
 	}
 	/*getMapByArea: function(area){
 			$.ajax({
@@ -391,24 +482,25 @@ var googleMaps={
 	}*/
 };
 function renderTranslationHeader(language){
-	console.log(language);
-	$('.js-language').text(language);
+	console.log(yandexTranslate.current_language);
+	$('.js-language').text(yandexTranslate.current_language);
 }
-function getTranslatedLanguage(translatedLanguages){
+/*function getTranslatedLanguage(translatedLanguages){
+	console.log('MADE IT HERE!');
 	var maxUsedLanguage='en';
 	for(var language in translatedLanguages){
 		console.log(language);
 		if(translatedLanguages[language] > translatedLanguages[maxUsedLanguage])
 			maxUsedLanguage=language;
 	}
-	yandexTranslate.current_language=maxUsedLanguage;
+	yandexTranslate.current_language_sn=maxUsedLanguage;
 	yandexTranslate.getTranslationHeaderLanguage();
 	console.log(maxUsedLanguage);
 }
 function analyzeLanguage(results){
 	if(yandexTranslate.locationChanged(googleMaps.latlng)){
 		yandexTranslate.current_location=googleMaps.latlng;
-		yandexTranslate.event_translations=0;
+		yandexTranslate.attraction_translations=0;
 		console.log('YUP');
 		yandexTranslate.languages={};	
 	}
@@ -417,17 +509,18 @@ function analyzeLanguage(results){
 	else
 		yandexTranslate.languages[results.detected.lang]=1;
 
-	yandexTranslate.event_translations++;
+	yandexTranslate.attraction_translations++;
+	//console.log(yandexTranslate.attraction_translations);
 	if(yandexTranslate.attraction_translations===10){
 		getTranslatedLanguage(yandexTranslate.languages);
 	}
 	console.log(yandexTranslate.languages);
-}
+}*/
 function renderTranslatedDetail(results, property, elementNumber){
 	//console.log(results);
 
 	$('.js-entertainment-list-'+elementNumber).append('<li><span class="property">'+property.toUpperCase()+'</span>: '+results.text[0]+'</li>');
-	analyzeLanguage(results);
+	//analyzeLanguage(results);
 	/*console.log(results);
 	console.log(results.text[0]);
 	return results.text[0];*/
@@ -448,12 +541,12 @@ function renderNearbyEvents(results){
 	$('.js-events').remove();
 	if(results.events===null){
 		eventsContent.filter('.js-events').append('<div>NO EVENTS ARE CURRENTLY NEARBY</div>');
-		$('.js-top-attractions').append(eventsContent);
+		$('.js-top-events').append(eventsContent);
 	}
 	else{
 		for(var i=0; i < results.events.event.length; i++){
 			eventsContent.filter('.js-events').append('<ul class="js-event-list-'+i+' event-list"></ul>');
-			$('.js-top-attractions').append(eventsContent);
+			$('.js-top-events').append(eventsContent);
 			var event=results.events.event[i];
 			/*var properties=[results.events.event[i].title, results.events.event[i].venue_name, results.events.event[i].city_name,
 							results.events.event[i].country_name,];
@@ -476,7 +569,7 @@ function renderNearbyEvents(results){
 		}
 	}
 	//$('.js-events').remove();
-	console.log(eventsContent.html());
+	//console.log(eventsContent.html());
 	//attractionContent.filter('.js-events').append('<ul class="js-event-list-'+elementNumber+' event-list"></ul>');
 	//$('.js-events-list-'+elementNumber).append('<li>'+results.text[0]+'</li>');
 }
@@ -499,7 +592,9 @@ function renderNearbyPlaces(results, status){
 		$('.js-top-attractions').append(attractionContent);*/
 	}
 	else {
-        alert('Geocode was not successful for the following reason: ' + status);
+		var attractionContent=$(entertainmentTemplate);
+		attractionContent.filter('.js-entertainment').html('<span class="no-results">SORRY, NO ATTRACTIONS NEARBY</span>');
+        //alert('Geocode was not successful for the following reason: ' + status);
     }	
 }
 function getPositionDetails(type, position){
@@ -531,18 +626,39 @@ function renderMarkersAndImages(results, status){
         console.log(googleMaps.place_id);
         //googleMaps.getPlaceDetails();
         //alert('RESULTS: '+results[0].geometry.location);
+        var countryCode='';
+        /*for(var obj in results[0].address_components){
+        	if(obj.types[0]==='country'){
+        		countryCode=obj.short_name;
+        		break;
+        	}
+        }*/
+        for(var i=results[0].address_components.length-1; i >=0; i--){
+        	if(results[0].address_components[i].types[0]==='country'){
+        		countryCode=(results[0].address_components[i].short_name).toLowerCase();
+        		break;
+        	}
+        }
+        $('.js-address').text(results[0].formatted_address);
+        var promise=yandexTranslate.setCurrentLanguage(countryCode);
+        promise.then(function(status){renderTranslationHeader();});
         googleMaps.getNearbyPlaces(results[0].geometry.location);
         //googleMaps.getNearbyPlaces();
-        googleMaps.geocoder.geocode({'placeId': results[0].place_id}, function(results, status){
+        $('.js-search-input').val('');
+        eventful.getNearbyEvents(results[0].formatted_address);
+        console.log('RIGHT BEFORE RENDERTRANSLATIONHEADER!');
+        /*googleMaps.geocoder.geocode({'placeId': results[0].place_id}, function(results, status){
         	if(status==='OK'){
         		console.log(results[0]);
         		$('.js-search-input').val(results[0].formatted_address);
         		eventful.getNearbyEvents(results[0].formatted_address);
         	}
-        });
+        });*/
         //$('.js-top-attractions').empty().append(topAttractionsTemplate);
     } else {
-            alert('Geocode was not successful for the following reason: ' + status);
+    		console.log('LOOKS LIKE WE MADE IT!');
+    		$('.js-bad-map-request').removeClass('hidden');
+            //alert('Geocode was not successful for the following reason: ' + status);
     }	
 }
 function renderPosition(input){
@@ -580,7 +696,8 @@ function initMaps(response){
       googleMaps.geocoder = new google.maps.Geocoder();
       googleMaps.maps.searchMap.map=new google.maps.Map(document.getElementById('search-map'),
 			{center: googleMaps.latlng,
-			zoom: 8});
+			zoom: 8,
+			mapTypeId: 'terrain'});
 
       googleMaps.maps.searchMap.marker=new google.maps.Marker({
           position: googleMaps.latlng,
@@ -591,8 +708,8 @@ function initMaps(response){
         });
 
       googleMaps.placeService = new google.maps.places.PlacesService(googleMaps.maps.searchMap.map);
-      googleMaps.getNearbyPlaces(googleMaps.latlng);
- 
+      /*googleMaps.getNearbyPlaces(googleMaps.latlng);
+ 	  eventful.getNearbyEvents(results[0].formatted_address);*/
   	  /*map.addListener('center_changed', function() {
     	// 3 seconds after the center of the map has changed, pan back to the
     	// marker.
@@ -605,18 +722,46 @@ function initMaps(response){
   	  	renderPosition(googleMaps.maps.searchMap.marker.getPosition());
   	  	//$('#js-search-form').children('.js-search-input').val('');
   	  });
+  	  renderPosition(googleMaps.maps.searchMap.marker.getPosition());
 }
 function jsonFlickrApi(json){
 	//console.log(json);
 	renderImages(json);
 }
 function renderImages(imageData){
-	var imageSection=$('<header class="js-image-header image-header">Search Results: </header><div class="js-image-listings image-listings"></div>');
+	//var imageSection=$('<header class="js-image-header image-header">Search Results: </header><div class="js-image-listings image-listings"></div>');
+	console.log('Total photos: '+imageData.photos.total);
+	if(imageData.photos.total!=='0'){
 	var images='';
 	var blackList={};
+	var links='';
+	flickr.imageArray=[];
 	imageData.photos.photo.forEach(function(photo){
-		if(photo.url_t!=='undefined')
-			images+='<img src="'+photo.url_t+'" alt="'+photo.title+'">\n';
+		if(photo.url_t!=='undefined' && photo.url_s!=='undefined'){
+			//images+='<img src="'+photo.url_t+'" alt="'+photo.title+'">\n';
+			flickr.imageArray.push({
+				title: photo.title,
+				href: photo.url_n,
+				type: 'image/jpeg',
+				thumbnail: photo.url_t
+			});
+			var height=Number(photo.height_t);
+			if(height < 66){
+				var padding=(66-height)/2;
+				links+='<a class=".js-image-links image-links" href="'+photo.url_n+'" title="'+photo.title+'" data-gallery>'+
+									//'<div style="background-image: url("'+photo.url_t+'");"></div></a>';
+									'<div style="padding-top: '+padding+'px; padding-bottom: '+padding+'px;"><img class="image" src="'+photo.url_t+'" alt="'+photo.title+'"></div></a>';
+
+			}
+			else{
+				links+='<a class=".js-image-links image-links" href="'+photo.url_n+'" title="'+photo.title+'" data-gallery>'+
+									//'<div style="background-image: url("'+photo.url_t+'");"></div></a>';
+									'<div><img class="image" src="'+photo.url_t+'" alt="'+photo.title+'"></div></a>';
+			}
+
+
+		}
+
 		/*if(!blackList[photo.owner]){
 			blackList[photo.owner]=1;
 		}
@@ -628,8 +773,16 @@ function renderImages(imageData){
 		}
 		else{ console.log('Skipped: '+photo.owner); }*/
 	});
-	imageSection.filter('.js-image-listings').append(images);
-	$('.js-images-section').empty().append(imageSection);
+	//gallery=blueimp.Gallery(links, options);
+	$('#links').empty().append(links);
+	//imageSection.filter('.js-image-listings').append(images);
+	}
+	else{
+		$('#links').empty().append('<span class=no-results>SORRY, NO IMAGES FOUND NEAR THIS LOCATION</span>');
+		//console.log("WHAT'S HAPPENING!");
+		//imageSection.filter('.js-image-listings').append('<span class=no-results>SORRY, NO IMAGES FOUND NEAR THIS LOCATION</span>');
+	}
+	//$('.js-images-section').empty().append(imageSection);
 }
 
 //Handlers
@@ -648,6 +801,12 @@ function handleSearchSubmit(){
 function handleImageRetrieval(){
 	$('.js-find-images').click(function(event){
 		flickr.searchPhotosByGeography(googleMaps.maps.searchMap.marker.getPosition());
+	});
+
+	var options={stretchImages: true};
+	$('.js-image-links').click(function(event){
+		if(target===this)
+			blueimp.Gallery(flickr.imageArray);
 	});
 }
 function handleHeaderClick(){
@@ -668,6 +827,38 @@ function handleTextTranslation(){
 	});
 	console.log(responsiveVoice.getVoices());
 }
+function handleMarkerCheckBoxes(){
+	$('.js-marker-check').change(function(event){
+			googleMaps.toggleMarkers(this.name);
+	});
+}
+function handleNavButtons(){
+	$('.js-nav-button').click(function(event){
+		switch($(this).text()){
+			case 'Entertainment':
+				$('.js-top-events, .js-translation, #links').addClass('hidden');
+				$('.js-top-attractions').removeClass('hidden');
+				break;
+			case 'Events':
+				$('.js-top-attractions, .js-translation, #links').addClass('hidden');
+				$('.js-top-events').removeClass('hidden');
+				break;
+
+			case 'Images':
+				$('.js-top-events, .js-translation, .js-top-attractions').addClass('hidden');
+				$('#links').removeClass('hidden');
+				break;
+
+			case 'Translator':
+				$('.js-top-events, #links, .js-top-attractions').addClass('hidden');
+				$('.js-translation').removeClass('hidden');
+				break;
+
+			default: 
+				break;
+		}
+	})
+}
 
 $(document).ready(function(){
 	var flickerOptions={api_key: 'fce2cc179918f3569a6ceb86165c46c3'};
@@ -684,6 +875,8 @@ $(document).ready(function(){
 	//geoCoder.init(googleOptions);
 
 	handleSearchSubmit();
+	handleNavButtons();
+	handleMarkerCheckBoxes();
 	handleImageRetrieval();
 	handleHeaderClick();
 	handleTextTranslation();

@@ -4,6 +4,7 @@
 	<title>Travel Plan</title>
 	<meta name="description" content="App used to find places to visit in a geographic location, that is of interest to the user.">
 	<link rel="stylesheet" type="text/css" href="https://necolas.github.io/normalize.css/5.0.0/normalize.css">
+	<link rel="stylesheet" href="css/blueimp-gallery.min.css">
 	<link rel="stylesheet" type="text/css" href="styles/app.css">
 </head>
 <body>
@@ -16,31 +17,47 @@
 			<button class="search-submit" type="submit">Search</button>
 		</form>
 		<section class="js-main-map main-map">
-			<div id="search-map">
-
-			</div>
+			<div class="js-bad-map-request bad-map-request hidden">Search term can be an address at the lowest level and a country at the highest level. Dragging marker to the ocean will result in zero change.</div>
+			<div class="js-marker-toggle marker-toggle"><div><input class="js-marker-check" type="checkbox" name="places"><label for="places">Places</label></div><div><input class="js-marker-check" type="checkbox" name="events"><label for="events">Events</label></div></div>
+			<div id="search-map"></div>
 			<!--<button class="js-find-images find-images" type="button">Retrieve Images</button>-->
+			<div class="js-location-description location-description">
+				<span class="property">Current Location</span>: <span class="js-address address">Japan</span>
+			</div>
 		</section>
 		<nav class="js-section-nav">
 			<ul>
-				<li>Description</li>
-				<li>Entertainment and Events</li>
-				<li>Translator</li>
+				<li class="js-nav-button nav-button">Entertainment</li>
+				<li class="js-nav-button nav-button">Events</li>
+				<li class="js-nav-button nav-button">Images</li>
+				<li class="js-nav-button nav-button">Translator</li>
 			</ul>
 		</nav>
-		<section class="js-description description">
+		<!--<section class="js-description description">
 		<header></header>
-		</section>
-		<section class="js-images-section images-section">
-			<header class="js-image-header image-header">Search Results: </header>
-			<!--<div class="js-image-listings image-listings">
-			</div>-->
-		</section>
+		</section>-->
+		<!--<section class="js-images-section images-section">-->
+			<!--<header class="js-image-header image-header">Search Results: </header>-->
+			<!--<div class="js-image-listings image-listings">-->
+			<!--</div>-->
+		<!--</section>-->
 		<section class="js-top-attractions top-attractions">
 		</section>
+		<section class="js-top-events top-events hidden">
+		</section>
+		<div id='links' class="hidden"></div>
+		<div id="blueimp-gallery" class="blueimp-gallery blueimp-gallery-controls" data-start-slideshow="false">
+    		<div class="slides"></div>
+    		<h3 class="title"></h3>
+    		<a class="prev"><</a>
+    		<a class="next">></a>
+    		<a class="close">x</a>
+    		<a class="play-pause"></a>
+    		<ol class="indicator"></ol>
+    	</div>
 		<!--<section class="js-map map">
 		</section>-->
-		<section class="js-translation translation">
+		<section class="js-translation translation hidden">
 			<header class="js-translator-header translator-header">Language Translator: <span class="js-language language">Japanese</span><div class="js-header-image header-image"></div><!--<img class="js-header-image header-image" src="images/green-plus-4.png" alt="show translator"/>--></header>
 			<div class="js-textbox hidden">
 				<form id="js-translation-form">
@@ -57,6 +74,7 @@
 	</main>
 	<footer></footer>
 	<script src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+	<script src="js/jquery.blueimp-gallery.min.js"></script>
 	<script src="javascript/app.js"></script>
 	<script src='https://code.responsivevoice.org/responsivevoice.js'></script>
 	<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDCz6gKlHvkMprHXZ5gYtJvhiS9aUbDY9o&libraries=places&callback=initMaps"

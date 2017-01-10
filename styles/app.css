@@ -45,8 +45,86 @@ section{
 	padding: 7px;
 	/*margin-top: -2px;*/
 }
+.bad-map-request{
+	height: 20px;
+}
 #search-map{
 	height: 400px;
+	border: 1px solid black;
+	border-bottom: none;
+}
+.another-div{
+	position: absolute;
+	right: 0;
+	width: 300px;
+	z-index: 9999;
+}
+.main-map{
+	position: relative;
+}
+.marker-toggle{
+	position: absolute;
+	right: 0;
+	width: 200px;
+	height: 28px;
+	margin-bottom: -36px;
+	z-index: 9999;
+	background-color: red;
+	opacity: .9;
+	border-radius: 0 0 0 15px;
+	
+}
+.marker-toggle div{
+	width: 50%;
+	display: inline-block;
+	text-align: center;
+	line-height: 14px;
+	font-size: 14px;
+	padding-top: 6px;
+	padding-bottom: 6px;
+}
+.marker-toggle div:first-child{
+	right: 100px;
+}
+.marker-toggle div label{
+	color: black;
+	margin-left: 2px;
+	vertical-align: middle;
+}
+.location-description{
+	text-align: center;
+	min-height: 40px;
+	line-height: 40px;
+	margin-bottom: 20px;
+	border: 1px solid black;
+	border-top: none;
+}
+
+.js-section-nav{
+	width: 90%;
+	margin: 0px auto;
+	margin-bottom: 40px;
+}
+.js-section-nav ul{
+	list-style: none;
+	width: 100%;
+	padding: 0;
+	margin: 0 auto;
+	text-align: center;
+}
+.js-section-nav ul li{
+	display: inline-block;
+	text-align: center;
+	width: 24%;
+	padding: 0;
+	margin: 0;
+	height: 40px;
+	line-height: 36px;
+	border: 2px inset black;
+	cursor: pointer;
+}
+.property{
+	font-weight: bold;
 }
 .translator-header, .translator-header-clicked{
 	height: 50px;
@@ -69,6 +147,17 @@ section{
 	padding-bottom: 5px;
 	margin-left: 15px;
 }*/
+#links{
+	width: 90%;
+	margin: 0 auto;
+	text-align: center;
+}
+/*.image-wrapper{
+	width: 99%;
+	margin: 0 auto;
+	overflow: hidden;
+	text-align: center;
+}*/
 .header-image{
 	background-image: url('../images/green-plus-4.png');
 	width: 28px;
@@ -78,6 +167,35 @@ section{
 }
 .header-image-clicked{
 	background-image: url('../images/red-minus-4.png');
+}
+.image-links{
+	height: 66px;
+	width: 66px;
+	background: black;
+	overflow: hidden;
+	display: inline-block;
+	margin-bottom: -3px;
+	margin-right: .5px;
+	margin-left: .5px;
+}
+.image-links div{
+	margin-left: -20px;
+	margin-right: -20px;
+	background-color: black;
+	display: block;
+}
+.image{
+	display: block;
+	margin: 0 auto;
+    /*max-height: 66px;
+	max-width: 100px;
+	overflow: hidden;*/
+}
+.image-links div:hover{
+	/*zoom: 110%;*/
+    -webkit-transform: scale(1.25); /* Ch <36, Saf 5.1+, iOS < 9.2, An =<4.4.4 */
+    -ms-transform: scale(1.25);
+	transform: scale(1.25);
 }
 /*.translator-header:after, .translator-header-clicked:after{
 	margin-left: 20px;
