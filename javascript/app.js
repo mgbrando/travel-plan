@@ -74,8 +74,8 @@ var eventful={
 				url: this.BASE_URL,//+queryString,
 				data: {app_key: this.config.api_key, location: location, within: 10, date: 'Future'},
 				dataType: "jsonp",
-				jsonp: 'callback',
-				jsonpCallback: 'renderNearbyEvents',
+				/*jsonp: 'callback',
+				jsonpCallback: 'renderNearbyEvents',*/
 				success: renderNearbyEvents
 			});
 			/*makeCORSrequest('http://api.eventful.com/json/events/search?app_key='+this.config.api_key+
