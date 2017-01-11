@@ -59,7 +59,7 @@ var flickr={
 	}
 };
 var eventful={
-	BASE_URL: 'http://api.eventful.com/json/events/search',
+	BASE_URL: 'https://api.eventful.com/json/events/search',
 	config: {},
 	init: function(options){
 		options = options || {};
