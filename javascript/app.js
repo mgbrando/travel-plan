@@ -272,7 +272,7 @@ var googleMaps={
 	PLACES_BASE_URL: 'https://maps.googleapis.com/maps/api/place',
 	PLACES_SEARCH: '/nearbysearch/json',
 	PLACES_DETAILS: '/details/json',
-	ICON_BASE_URL: 'http://maps.google.com/mapfiles/kml/paddle/',
+	ICON_BASE_URL: 'https://maps.google.com/mapfiles/kml/paddle/',
 	icons: {position: 'red-stars.png', places: 'lv.png'},
 	search_type: null,
 	place_id: null,
