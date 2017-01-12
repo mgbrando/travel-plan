@@ -2,6 +2,47 @@
 
 //const Translate = require('@google/translate');
 
+(function($) {
+    $.fn.goTo = function() {
+        $('html, body').animate({
+            scrollTop: $(this).offset().top + 'px'
+        }, 'fast');
+        return this; // for chaining...
+    }
+
+    $.fn.goToTop = function() {
+        $('html, body').animate({
+            scrollTop: 0+'px'
+        }, 'fast');
+        return this; // for chaining...
+    }
+
+	$.fn.fixMenu = function (pos) {
+    	var $this = this,
+        	$window = $(window);
+
+    	$window.scroll(function (e) {
+        	if ($window.scrollTop() < pos) {
+            	$this.css({
+                	position: 'absolute',
+                	top: pos
+            });
+            $(this).removeClass('highest-index');
+        	} else {
+            	$this.css({
+                	position: 'fixed',
+                	top: 0,
+                	left: 0,
+                	right: 0
+            });
+            $(this).addClass('highest-index');
+        }
+    });
+};
+})(jQuery);
+
+
+
 var photoTemplate='<img src="" alt="">';
 /*var imageLinksTemplate= '<a href="images/banana.jpg" title="Banana" data-gallery>'+
         					'<img src="images/thumbnails/banana.jpg" alt="Banana">'+
@@ -68,11 +109,13 @@ var eventful={
 		this.config.user_language=options.user_language;
 	},	
 	getNearbyEvents: function(location){
-			console.log('NEARBY EVENTS: '+location.lat+','+location.lng);
+			console.log('NEARBY EVENTS: '+location);
+			//console.log(location["lat"]);
 			$.ajax({
 				type: "GET",
 				url: this.BASE_URL,//+queryString,
-				data: {app_key: this.config.api_key, location: location, within: 10, date: 'Future'},
+				data: {app_key: this.config.api_key, location: location,
+								 within: 10, date: 'Future'},
 				dataType: "jsonp",
 				/*jsonp: 'callback',
 				jsonpCallback: 'renderNearbyEvents',*/
@@ -80,8 +123,57 @@ var eventful={
 			});
 			/*makeCORSrequest('http://api.eventful.com/json/events/search?app_key='+this.config.api_key+
 				'&where='+location.lat+','+location.lng+'&within=10&date=Future');*/
+	},
+	addEvents: function(results, element){
+		if(results.events===null){
+			element.filter('.js-events').append('<div class="no-results">NO EVENTS ARE CURRENTLY NEARBY</div>');
+			$('.js-top-events').append(element);
+		}
+		else{
+			for(var i=0; i < results.events.event.length; i++){
+				element.filter('.js-events').append('<ul class="js-event-list-'+i+' event-list"></ul>');
+				$('.js-top-events').append(element);
+				var event=results.events.event[i];
+				/*var properties=[results.events.event[i].title, results.events.event[i].venue_name, results.events.event[i].city_name,
+							results.events.event[i].country_name,];
+				for(var property in results.events.event[i]){
+				if(i===0){
+					console.log(property);
+					//console.log(results.events.event[i]);
+				}
+				if(results.events.event[i][property]!==null)
+					$('.js-event-list-'+i).append('<li><span class="property">'+property.toUpperCase()+'</span>: '+results.events.event[i][property]+'</li>');
+				}*/
+				//var properties=Object.keys(event);
+				/*if(googleMaps.eventMarkersOn)
+				updateEventMarker({lat: Number(event.latitude), lng: Number(event.longitude)}, event.title);*/
+				/*var start_time='';
+				var end_time='';
+				var description='';*/
+				if(event.start_time===undefined)
+					event.start_time='not specified';
+				if(event.end_time===undefined)
+					event.end_time='not specified';
+				if(event.description===null)
+					event.description='N/A';
+
+				googleMaps.addEventMarker(event.title, {lat: Number(event.latitude), lng: Number(event.longitude)});
+				console.log(event.image.medium.url);
+				var photo_url='';
+				console.log((''+event.image.medium.url).replace('file', 'http'));
+				if(event.image)
+					$('.js-events').append('<img src="'+(event.image.medium.url).replace('file', 'http')+'" alt="'+event.title+'">');
+				$('.js-event-list-'+i).append('<li><span class="property">EVENT</span>: <a href="'+event.url+'" target="_blank">'+event.title+'</a></li>'+
+										  '<li><span class="property">VENUE</span>: <a href="'+event.venue_url+'" target="_blank">'+event.venue_name+'</a></li>'+
+										  '<li><span class="property">CITY</span>: '+event.city_name+', '+event.region_name+' - '+event.country_name+'</li>'+
+										  '<li><span class="property">VENUE</span>: '+event.venue_address+'</li>'+
+										  '<li><span class="property">START TIME</span>: '+event.start_time+'</li>'+
+										  '<li><span class="property">END TIME</span>: '+event.end_time+'</li>'+
+										  '<li><span class="property">DESCRIPTION</span>: '+event.description+'</li>');
+		 	}
+		}
 	}
-}
+};
 var yandexTranslate={
 	BASE_URL: 'https://translate.yandex.net/api/v1.5/tr.json',
 	TRANSLATE_EXT: '/translate',
@@ -273,7 +365,7 @@ var googleMaps={
 	PLACES_SEARCH: '/nearbysearch/json',
 	PLACES_DETAILS: '/details/json',
 	ICON_BASE_URL: 'https://maps.google.com/mapfiles/kml/paddle/',
-	icons: {position: 'red-stars.png', places: 'lv.png'},
+	icons: {position: 'red-stars.png', places: 'lv.png', events: 'grn-stars-lv.png'},
 	search_type: null,
 	place_id: null,
 	latlng: null,
@@ -339,11 +431,13 @@ var googleMaps={
 		}
 		var rating='';
 		if(place.rating){
-			rating='<div>'+place.rating+'</div>';
+			rating=place.rating;
 		}
-        contentTemplate.filter('.js-entertainment').append('<img src="'+place.icon+'">'+photo+rating+
-        			'<ul class="js-entertainment-list-'+elementNumber+' entertainment-list">'+
-        			'</ul>');
+		else
+			rating="N/A";
+        contentTemplate.filter('.js-entertainment').append('<div class="place-wrapper"><div class="place-elements"><div class="left-elements">'+photo+'<div class="place-stats"><img class="place-icon" src="'+place.icon+'">'+
+        	'<div class="rating"><span class="property">Rating:</span>'+rating+'</div></div></div></div><ul class="js-entertainment-list-'+elementNumber+' entertainment-list">'+
+        			'</ul></div>');
         /*for(var property in place){
 			console.log(property+': '+place[property]);
 			if(typeof place[property]==='string' && place[property]!=='GOOGLE' && place[property]!==undefined){
@@ -358,7 +452,14 @@ var googleMaps={
 			//yandexTranslate.translateRequest('name', place.name, elementNumber).done(yandexTranslate.translateRequest('vicinity', place.vicinity, elementNumber).done(yandexTranslate.translateRequest('type', place.types[0], elementNumber)));
 			var promise=yandexTranslate.translateRequest('name', place.name, elementNumber);
 			promise.then(function(status){var promise2=yandexTranslate.translateRequest('vicinity', place.vicinity, elementNumber);
-						promise2.then(function(status){$('.js-entertainment-list-'+elementNumber).append('<li><span class="property">TYPE</span>: '+place.types[0].replace(/_/g, ' ')+'</li>');/*yandexTranslate.translateRequest('type', place.types[0], elementNumber)*/});});
+						promise2.then(function(status){
+							var types='';
+							for(var i=0; i<place.types.length; i++){
+								types+=place.types[i]+", ";
+							}
+							$('.js-entertainment-list-'+elementNumber).append('<li><span class="property">TYPE</span>: '+types.replace(/_/g, ' ')+'</li>');
+						});});
+						/*yandexTranslate.translateRequest('type', place.types[0], elementNumber)*///});});
 			/*$.when(yandexTranslate.translateRequest('name', place.name, elementNumber))
 				.then($.when(yandexTranslate.translateRequest('vicinity', place.vicinity, elementNumber))
 					.then(yandexTranslate.translateRequest('type', place.types[0], elementNumber)));*/
@@ -371,11 +472,15 @@ var googleMaps={
 	},
 	addPlaces: function(places){
 		var attractionContent=$(entertainmentTemplate);
+		var map=null;
+		if(this.maps.searchMap.placeMarkersOn){
+			map=this.maps.searchMap.map;
+		}
 			for(var i=0; i<places.length && i<10; i++){
 				googleMaps.maps.searchMap.placesMarkers[i] = new google.maps.Marker({
           		position: places[i].geometry.location,
           		icon: this.ICON_BASE_URL+(i+1)+'-'+this.icons.places,
-          		map: null,
+          		map: map,
           		draggable: false,
           		title: places[i].name
         		});
@@ -422,26 +527,46 @@ var googleMaps={
 		}
 		this.maps.searchMap.placesMarkers = [];
 	},
+	removeEventMarkers:function(){
+		var deferred=$.Deferred();
+		for(var i=0; i<this.maps.searchMap.eventsMarkers.length; i++){
+			this.maps.searchMap.eventsMarkers[i].setMap(null);
+		}
+		this.maps.searchMap.eventsMarkers = [];
+		deferred.resolve('OK');
+		return deferred.promise();
+	},
+	updateEventMarker(marker, position, title){
+		marker.setPosition(position);
+		marker.setTitle(title);
+	},
 	toggleMarkers: function(markerType){
+
+		console.log('PlaceMarkers: ');
+		console.log('PlaceMarkersOn: '+this.maps.searchMap.eventMarkersOn);
 		console.log(this.maps.searchMap.placesMarkers);
+		console.log('EventMarkers: ');
+		console.log('EventMarkersOn: '+this.maps.searchMap.eventMarkersOn);
+		console.log(this.maps.searchMap.eventsMarkers);
 		if(markerType==='places'){
-			if(this.maps.searchMap.placesMarkersOn){
-				this.hideMarkers(this.maps.searchMap.placesMarkers);
-				this.maps.searchMap.placesMarkersOn=false;
+			if(this.maps.searchMap.placeMarkersOn){
+				this.hideMarkers(googleMaps.maps.searchMap.placesMarkers);
+				this.maps.searchMap.placeMarkersOn=false;
 			}
 			else{
-				this.showMarkers(this.maps.searchMap.placesMarkers);
-				this.maps.searchMap.placesMarkersOn=true;
+				this.showMarkers(googleMaps.maps.searchMap.placesMarkers);
+				this.maps.searchMap.placeMarkersOn=true;
 			}
 		}
 		else{
 			if(this.maps.searchMap.eventMarkersOn){
-				this.hideMarkers(this.maps.searchMap.eventMarkers);
-				this.maps.searchMap.placesMarkersOn=false;
+				this.hideMarkers(googleMaps.maps.searchMap.eventsMarkers);
+				this.maps.searchMap.eventMarkersOn=false;
 			}
-			else
-				this.showMarkers(this.maps.searchMap.eventMarkers);
-				this.maps.searchMap.placesMarkersOn=true;
+			else{
+				this.showMarkers(googleMaps.maps.searchMap.eventsMarkers);
+				this.maps.searchMap.eventMarkersOn=true;
+			}
 		}
 	},
 	showMarkers: function(markers){
@@ -453,6 +578,19 @@ var googleMaps={
 		markers.forEach(function(marker){
 			marker.setMap(null);
 		});
+	},
+	addEventMarker: function(name, latlng){
+		var map=null;
+		if(this.maps.searchMap.eventMarkersOn)
+			map=this.maps.searchMap.map;
+
+		this.maps.searchMap.eventsMarkers.push(new google.maps.Marker({
+        	position: latlng,
+        	icon: this.ICON_BASE_URL+this.icons.events,
+          	map: map,
+          	draggable: false,
+          	title: name
+        }));
 	}
 	/*getMapByArea: function(area){
 			$.ajax({
@@ -481,6 +619,12 @@ var googleMaps={
 			});			
 	}*/
 };
+var applicationState={
+	currentSection: 'Events',
+	mapOpen: false,
+	initialMap: true
+};
+
 function renderTranslationHeader(language){
 	console.log(yandexTranslate.current_language);
 	$('.js-language').text(yandexTranslate.current_language);
@@ -536,38 +680,12 @@ function renderPlaceDetails(results, status){
 function renderNearbyEvents(results){
 	var eventsContent=$(eventsTemplate);
 	var elementNumber=0;
+	$('.js-events').remove();
 	console.log('HELLO THERE!');
 	console.log(results);
-	$('.js-events').remove();
-	if(results.events===null){
-		eventsContent.filter('.js-events').append('<div>NO EVENTS ARE CURRENTLY NEARBY</div>');
-		$('.js-top-events').append(eventsContent);
-	}
-	else{
-		for(var i=0; i < results.events.event.length; i++){
-			eventsContent.filter('.js-events').append('<ul class="js-event-list-'+i+' event-list"></ul>');
-			$('.js-top-events').append(eventsContent);
-			var event=results.events.event[i];
-			/*var properties=[results.events.event[i].title, results.events.event[i].venue_name, results.events.event[i].city_name,
-							results.events.event[i].country_name,];
-			for(var property in results.events.event[i]){
-				if(i===0){
-					console.log(property);
-					//console.log(results.events.event[i]);
-				}
-				if(results.events.event[i][property]!==null)
-					$('.js-event-list-'+i).append('<li><span class="property">'+property.toUpperCase()+'</span>: '+results.events.event[i][property]+'</li>');
-			}*/
-			//var properties=Object.keys(event);
-			$('.js-event-list-'+i).append('<li><span class="property">EVENT</span>: <a href="'+event.url+'">'+event.title+'</a></li>'+
-										  '<li><span class="property">VENUE</span>: <a href="'+event.venue_url+'">'+event.venue_name+'</a></li>'+
-										  '<li><span class="property">CITY</span>: '+event.city_name+', '+event.region_name+' - '+event.country_name+'</li>'+
-										  '<li><span class="property">VENUE</span>: '+event.venue_address+'</li>'+
-										  '<li><span class="property">START TIME</span>: '+event.start_time+'</li>'+
-										  '<li><span class="property">END TIME</span>: '+event.end_time+'</li>'+
-										  '<li><span class="property">DESCRIPTION</span>: '+event.description+'</li>');
-		}
-	}
+	var promise=googleMaps.removeEventMarkers();
+	promise.then(function(status){eventful.addEvents(results, eventsContent);});
+	console.log(googleMaps.maps.searchMap.eventsMarkers);
 	//$('.js-events').remove();
 	//console.log(eventsContent.html());
 	//attractionContent.filter('.js-events').append('<ul class="js-event-list-'+elementNumber+' event-list"></ul>');
@@ -621,7 +739,6 @@ function renderMarkersAndImages(results, status){
     	if(googleMaps.search_type==='address')
         	googleMaps.maps.searchMap.marker.setPosition(googleMaps.latlng);
         //$('#js-search-form').children('.js-search-input').val('');
-        flickr.searchPhotosByGeography(googleMaps.latlng);
         googleMaps.place_id=results[0].place_id;
         console.log(googleMaps.place_id);
         //googleMaps.getPlaceDetails();
@@ -645,8 +762,10 @@ function renderMarkersAndImages(results, status){
         googleMaps.getNearbyPlaces(results[0].geometry.location);
         //googleMaps.getNearbyPlaces();
         $('.js-search-input').val('');
-        eventful.getNearbyEvents(results[0].formatted_address);
+        //eventful.getNearbyEvents(results[0].formatted_address);
+        eventful.getNearbyEvents(results[0].geometry.location.lat()+','+results[0].geometry.location.lng());
         console.log('RIGHT BEFORE RENDERTRANSLATIONHEADER!');
+        flickr.searchPhotosByGeography(googleMaps.latlng);
         /*googleMaps.geocoder.geocode({'placeId': results[0].place_id}, function(results, status){
         	if(status==='OK'){
         		console.log(results[0]);
@@ -778,13 +897,15 @@ function renderImages(imageData){
 	//imageSection.filter('.js-image-listings').append(images);
 	}
 	else{
-		$('#links').empty().append('<span class=no-results>SORRY, NO IMAGES FOUND NEAR THIS LOCATION</span>');
+		$('#links').empty().append('<div class="no-results">SORRY, NO IMAGES FOUND NEAR THIS LOCATION</div>');
 		//console.log("WHAT'S HAPPENING!");
 		//imageSection.filter('.js-image-listings').append('<span class=no-results>SORRY, NO IMAGES FOUND NEAR THIS LOCATION</span>');
 	}
 	//$('.js-images-section').empty().append(imageSection);
 }
-
+function clickedAwayFromTranslation(){
+	$('.js-translated-section').animate({height: '0'}, fast);
+}
 //Handlers
 function handleSearchSubmit(){
 	$('#js-search-form').submit(function(event){
@@ -819,7 +940,7 @@ function handleTextTranslation(){
 	$('#js-translation-form').submit(function(event){
 		event.preventDefault();
 		var textToTranslate=$(this).children('.js-textarea').val().trim();
-		yandexTranslate.translateTextBox(textToTranslate);
+		$('.js-translated-section').goTo().animate({height: '100%'}, 'slow', yandexTranslate.translateTextBox(textToTranslate));
 	});
 	$('.js-text-box').on('click', '.js-text-to-speech', function(event){
 		responsiveVoice.setDefaultVoice("US English Female");
@@ -834,33 +955,60 @@ function handleMarkerCheckBoxes(){
 }
 function handleNavButtons(){
 	$('.js-nav-button').click(function(event){
+		var section='';
 		switch($(this).text()){
 			case 'Entertainment':
-				$('.js-top-events, .js-translation, #links').addClass('hidden');
-				$('.js-top-attractions').removeClass('hidden');
+				$('.js-top-events, .js-translation, .js-gallery').addClass('hidden');
+				section='.js-top-attractions';
 				break;
 			case 'Events':
-				$('.js-top-attractions, .js-translation, #links').addClass('hidden');
-				$('.js-top-events').removeClass('hidden');
+				$('.js-top-attractions, .js-translation, .js-gallery').addClass('hidden');
+				section='.js-top-events';
 				break;
 
 			case 'Images':
 				$('.js-top-events, .js-translation, .js-top-attractions').addClass('hidden');
-				$('#links').removeClass('hidden');
+				section='.js-gallery';
 				break;
 
 			case 'Translator':
-				$('.js-top-events, #links, .js-top-attractions').addClass('hidden');
-				$('.js-translation').removeClass('hidden');
+				$('.js-top-events, .js-gallery, .js-top-attractions').addClass('hidden');
+				section='.js-translation';
 				break;
 
 			default: 
 				break;
 		}
-	})
+		console.log(section);
+		$(section).removeClass('hidden').goToTop();
+		/*$(section).goTo();
+		$(section).*/
+	});
 }
-
+function handleMapButton(){
+	$('.map-button').unbind().click(function(event){
+		console.log('WHAT IS GOING ON?');
+		console.log(applicationState.mapOpen);
+		if(applicationState.mapOpen){
+			$('.main-map, .map-background').fadeOut(500);
+			applicationState.mapOpen=false;
+		}
+		else{
+			if(applicationState.initialMap){
+				$('.main-map, .map-background').addClass('reveal-map').fadeIn(500);
+				//$('.main-map:before').fadeIn(500);
+				applicationState.initialMap=false;
+			}
+			else{
+				$('.main-map, .map-background').fadeIn(500);
+			}
+			/*$('.main-map').addClass('reveal-map');*/
+			applicationState.mapOpen=true;
+		}
+	});
+}
 $(document).ready(function(){
+	$('.section-nav').fixMenu(100);
 	var flickerOptions={api_key: 'fce2cc179918f3569a6ceb86165c46c3'};
 	//var googleTranslateOptions={api_key: 'AIzaSyDCz6gKlHvkMprHXZ5gYtJvhiS9aUbDY9o', user_language: 'en'};
 	var yandexTranslateOptions={api_key: 'trnsl.1.1.20170105T091703Z.37443af0f3f26f82.813faf58301bf41263b49bbdad6b073a9f773941', user_language: 'en'};
@@ -878,8 +1026,9 @@ $(document).ready(function(){
 	handleNavButtons();
 	handleMarkerCheckBoxes();
 	handleImageRetrieval();
-	handleHeaderClick();
+	//handleHeaderClick();***
 	handleTextTranslation();
+	handleMapButton();
 	//handleEntertainment
 });
 
