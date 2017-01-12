@@ -90,7 +90,7 @@ var flickr={
 				url: this.BASE_URL,
 				data: {method: 'flickr.photos.search', api_key: this.config.api_key, format: 'json', media: 'photos', 
 				tags: 'nature, museum, forest, architecture, venue, scenery', sort: 'interestingness-desc', content_type: 1, 
-				accuracy: 11, has_geo: 2, lat: position.lat(), lon: position.lng(), extras: 'url_t, url_n'},
+				accuracy: 11, has_geo: 2, lat: position.lat(), lon: position.lng(), extras: 'url_t, url_n, url_o'},
 				dataType: "jsonp"
 			});
 	},
@@ -856,7 +856,7 @@ function renderImages(imageData){
 	var links='';
 	flickr.imageArray=[];
 	imageData.photos.photo.forEach(function(photo){
-		if(photo.url_t!=='undefined' && photo.url_s!=='undefined'){
+		if(photo.url_t!==undefined && photo.url_n!==undefined){
 			//images+='<img src="'+photo.url_t+'" alt="'+photo.title+'">\n';
 			flickr.imageArray.push({
 				title: photo.title,
@@ -865,6 +865,7 @@ function renderImages(imageData){
 				thumbnail: photo.url_t
 			});
 			var height=Number(photo.height_t);
+			console.log(photo.url_o);
 			if(height < 66){
 				var padding=(66-height)/2;
 				links+='<a class=".js-image-links image-links" href="'+photo.url_n+'" title="'+photo.title+'" data-gallery>'+
