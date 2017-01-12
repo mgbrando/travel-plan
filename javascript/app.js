@@ -158,10 +158,10 @@ var eventful={
 					event.description='N/A';
 
 				googleMaps.addEventMarker(event.title, {lat: Number(event.latitude), lng: Number(event.longitude)});
-				console.log(event.image.medium.url);
+				//console.log(event.image.medium.url);
 				var photo_url='';
-				console.log((''+event.image.medium.url).replace('file', 'http'));
-				/*if(event.image)
+				/*console.log((''+event.image.medium.url).replace('file', 'http'));
+				if(event.image)
 					$('.js-events').append('<img src="'+(event.image.medium.url).replace('file', 'http')+'" alt="'+event.title+'">');*/
 				$('.js-event-list-'+i).append('<li><span class="property">EVENT</span>: <a href="'+event.url+'" target="_blank">'+event.title+'</a></li>'+
 										  '<li><span class="property">VENUE</span>: <a href="'+event.venue_url+'" target="_blank">'+event.venue_name+'</a></li>'+
