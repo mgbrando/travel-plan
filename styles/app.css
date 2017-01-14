@@ -270,12 +270,21 @@ section{
 	width: 25px;
 	height: 25px;
 	border: none;
+	vertical-align: middle;
+	margin-bottom: 7px;
+}
+.place-image{
+	max-width: 100px;
+	max-height: 100px;
+	margin: 0 auto;
+	border: 1px solid black;
 }
 .rating{
+	display: inline-block;
 	font-size: 16px;
 }
 .rating span{
-	margin-right: 7px;
+	margin-right: 2px;
 }
 /*.rating div{
 	display: inline;

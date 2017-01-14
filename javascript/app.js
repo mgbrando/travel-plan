@@ -432,7 +432,10 @@ var googleMaps={
 		var photo='';
 		if(place.photos){
 			//console.log(place.photos);
-				photo='<img src="'+place.photos[0].getUrl({maxWidth: 100, maxHeight: 100})+'">';
+				photo='<img class="place-image" src="'+place.photos[0].getUrl({maxWidth: 100, maxHeight: 100})+'">';
+		}
+		else{
+			photo='<img class="place-image" src="images/image-not-found.jpeg">';
 		}
 		var rating='';
 		if(place.rating){
