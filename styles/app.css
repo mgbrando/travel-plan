@@ -15,39 +15,66 @@ html, body{
 	padding-left: 10px;
 	padding-right: 10px;
 }
-.main-header{
+/*.main-header{
+	position: absolute;
+	top:0;
 	font-size: 32px;
 	font-weight: bold;
 	height: 100px;
+	width: 100%;
 	line-height: 100px;
 	text-align: center;
+	background-color: black;
+	color: white;
+	z-index: 9999;
+}*/
+.main-header, #js-search-form{
+	height: 75px;
+	line-height: 75px;
+}
+.main-header{
+	font-size: 28px;
+	color: #3e8e41;
+	line-height: 75px;
+}
+.main-header-right{
+	display: inline-block;
+	vertical-align: top;
+	width: 480px;
+	margin: 0;
 }
 section{
 	width: 90%;
 	margin: 0 auto;
+	margin-top: 190px;
 }
-section{
-	margin-top: 140px;
-}
+/*.main-section{
+	margin-top: 220px;
+}*/
+/*section{
+	margin-top: 220px;
+}*/
 .section-nav{
+	position: fixed;
 	width: 100%;
-	position: absolute;
-	height: 80px;
-	padding: 24px 5%;
+	top: 0;
+	height: 150px;
+	/*line-height: 150px;*/
+	padding-left: 5%;
     background: #000;
     z-index: 9999;
     /*opacity: 0.95;
     filter: alpha(opacity=9);*/
 }
-/*#js-search-form, section{
-	min-height: 100px;
-}*/
 #js-search-form{
+
+}
+/*#js-search-form{
 	display: inline-block;
 	vertical-align: top;
-	width: 80%;
+	width: 480px;
 	margin: 0;
-}
+}*/
 /*.search-header{
 	text-align: left;
 	font-weight: bold;
@@ -55,14 +82,23 @@ section{
 	border-bottom: 1px solid black;
 }*/
 .search-input, .search-submit{
+	height: 40px;
 	padding: 5px;
 }
 .search-input{
 	background-color: white;
+	font
 	/*border: 1px solid black;*/
 }
 .search-submit{
-	padding: 7px;
+	width: 40px;
+	border-radius: 10px;
+	margin-bottom: 2px;
+}
+.search-submit{
+	font-size: 22px;
+	padding: 0;
+	vertical-align: middle;
 	/*margin-top: -2px;*/
 }
 .bad-map-request{
@@ -295,12 +331,24 @@ section{
 .nav-select,  .map-button{
     background-color: #4CAF50;
     color: white;
-    height: 32px;
-    width: 52px;
-  	line-height: 32px;
-    font-size: 16px;
+    height: 75px;
+    width: 150px;
+    font-size: 22px;
+    padding-top: 26px;
+    padding-bottom: 26px;
     border: none;
     cursor: pointer;
+    display: block;
+    /*vertical-align: top;*/
+}
+.map-button{
+	border-bottom: 1px solid black;
+}
+.mapOpen{
+	background-color: red;
+}
+.nav-select{
+	border-top: 1px solid black;
 }
 
 .options {
@@ -327,7 +375,7 @@ section{
     display: block;
 }
 
-.options:hover .nav-select {
+.options:hover .nav-select, .map-button:hover{
     background-color: #3e8e41;
 }
 

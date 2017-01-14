@@ -22,7 +22,7 @@
         	$window = $(window);
 
     	$window.scroll(function (e) {
-        	if ($window.scrollTop() < pos) {
+        	if ($window.scrollTop() <= pos) {
             	$this.css({
                 	position: 'absolute',
                 	top: pos
@@ -169,9 +169,14 @@ var eventful={
 										  '<li><span class="property">VENUE</span>: '+event.venue_address+'</li>'+
 										  '<li><span class="property">START TIME</span>: '+event.start_time+'</li>'+
 										  '<li><span class="property">END TIME</span>: '+event.end_time+'</li>'+
-										  '<li><span class="property">DESCRIPTION</span>: '+event.description+'</li>');
+										  '<li><span class="property">DESCRIPTION</span>: <div class="comment">'+event.description+'</div></li>');
 		 	}
 		}
+		$('.comment').shorten({
+			"showChars": 300,
+			"moreText": "Read more...",
+			"lessText": "Show less..."
+		});
 	}
 };
 var yandexTranslate={
@@ -957,7 +962,9 @@ function handleMarkerCheckBoxes(){
 function handleNavButtons(){
 	$('.js-nav-button').click(function(event){
 		var section='';
-		switch($(this).text()){
+		var text=$(this).text();
+		$('.js-nav-select').text(text);
+		switch(text){
 			case 'Entertainment':
 				$('.js-top-events, .js-translation, .js-gallery').addClass('hidden');
 				section='.js-top-attractions';
@@ -987,21 +994,24 @@ function handleNavButtons(){
 	});
 }
 function handleMapButton(){
-	$('.map-button').unbind().click(function(event){
+	$('.js-map-button').unbind().click(function(event){
 		console.log('WHAT IS GOING ON?');
 		console.log(applicationState.mapOpen);
 		if(applicationState.mapOpen){
-			$('.main-map, .map-background').fadeOut(500);
+			$('.js-main-map, .js-map-background').fadeOut(500);
 			applicationState.mapOpen=false;
+			$('.js-map-button').text("Map").removeClass('mapOpen');
 		}
 		else{
 			if(applicationState.initialMap){
-				$('.main-map, .map-background').addClass('reveal-map').fadeIn(500);
+				$('.js-main-map, .js-map-background').addClass('reveal-map').fadeIn(500);
 				//$('.main-map:before').fadeIn(500);
 				applicationState.initialMap=false;
+				$('.js-map-button').text("Close Map").addClass('mapOpen');
 			}
 			else{
-				$('.main-map, .map-background').fadeIn(500);
+				$('.js-main-map, .js-map-background').fadeIn(500);
+				$('.js-map-button').text("Close Map").addClass('mapOpen');
 			}
 			/*$('.main-map').addClass('reveal-map');*/
 			applicationState.mapOpen=true;
@@ -1009,7 +1019,7 @@ function handleMapButton(){
 	});
 }
 $(document).ready(function(){
-	$('.section-nav').fixMenu(100);
+	//$('.section-nav').fixMenu(0);
 	var flickerOptions={api_key: 'fce2cc179918f3569a6ceb86165c46c3'};
 	//var googleTranslateOptions={api_key: 'AIzaSyDCz6gKlHvkMprHXZ5gYtJvhiS9aUbDY9o', user_language: 'en'};
 	var yandexTranslateOptions={api_key: 'trnsl.1.1.20170105T091703Z.37443af0f3f26f82.813faf58301bf41263b49bbdad6b073a9f773941', user_language: 'en'};
