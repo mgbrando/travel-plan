@@ -28,7 +28,7 @@ html, body{
 	color: white;
 	z-index: 9999;
 }*/
-.main-header, #js-search-form{
+.main-header, .form-wrapper{
 	height: 75px;
 	line-height: 75px;
 }
@@ -66,9 +66,10 @@ section{
     /*opacity: 0.95;
     filter: alpha(opacity=9);*/
 }
-#js-search-form{
-
-}
+/*#js-search-form{
+	display: block;
+	position: static;
+}*/
 /*#js-search-form{
 	display: inline-block;
 	vertical-align: top;
@@ -81,13 +82,21 @@ section{
 	margin-bottom: 15px;
 	border-bottom: 1px solid black;
 }*/
+.search-bar{
+	display: block;
+}
+.mobile-search-button{
+	display: none;
+}
+.changeColor{
+	border-color: #4CAF50;
+}
 .search-input, .search-submit{
 	height: 40px;
 	padding: 5px;
 }
 .search-input{
 	background-color: white;
-	font
 	/*border: 1px solid black;*/
 }
 .search-submit{
@@ -102,10 +111,14 @@ section{
 	/*margin-top: -2px;*/
 }
 .bad-map-request{
-	height: 20px;
+	height: 45px;
+	padding: 5px;
+	border-radius: 5px 5px 0 0;
+	background-color: red;
 }
 #search-map{
-	height: 400px;
+	/*height: 400px;*/
+	height: 100%;
 	border: 1px solid black;
 	border-bottom: none;
 }
@@ -118,15 +131,23 @@ section{
 .highest-index{
 	z-index: 9999;
 }
+.mapwrapper{
+	height: 90%;
+	margin-top: auto;
+	margin-bottom: auto;
+}
 .main-map{
 	position: fixed;
 	top: 0;
-	height: 60%;
+	/*height: 82%;*/
+	bottom: 0;
+	padding-top: 50px;
+	padding-bottom: 120px;
 	width: 90%;
 	left: -9999px;
 	z-index: 9997;
 	margin: 0 5%;
-	margin-top: 180px;
+	margin-top: 150px;
 	/*margin-bottom: 22%;*/
 	/*margin-left: 10%;
 	margin-right: 10%;*/
@@ -242,7 +263,8 @@ section{
 	border-bottom: none;
 }
 .top-attractions, .top-events, .gallery, .translation{
-	min-height: 500px;
+	/*min-height: 500px;*/
+	/*height: 100%;*/
 }
 .entertainment header, #js-translation-form, .translated-section{
 	margin-bottom: 40px;
@@ -356,13 +378,14 @@ section{
 .mapOpen{
 	background-color: red;
 }
-.nav-select{
+/*.nav-select{
 	border-top: 1px solid black;
-}
+}*/
 
 .options {
     position: relative;
     display: inline-block;
+    border-top: 1px solid black;
 }
 
 .dropdown-content {
@@ -485,7 +508,7 @@ section{
 @media screen and (min-width: 400px){
 	.search-input{
 		width: 90%;
-		max-width: 400px;
+		/*max-width: 400px;*/
 	}
 }
 @media screen and (min-width: 700px){
@@ -493,4 +516,113 @@ section{
 		display: block;
 		width: 100px;
 	}*/
+}
+@media screen and (min-width: 769px){
+	/*.search-submit{
+		display: block;
+		width: 100px;
+	}*/
+}
+@media screen and (max-width: 663px){
+	/*.search-input, .search-submit{
+		display: none;
+	}*/
+	/*.search-submit{
+		right: 0;
+	}*/
+	.search-input{
+		width: 80%;
+		min-width: none;
+		max-width: none;
+	}
+
+	.search-submit{
+	}
+	/*.search-submit{
+		position: absolute;
+		right: 0;
+	}*/
+	.mobile-search-button{
+		width: 60px;
+		height: 60px;
+		display: block;
+		border-radius: 10px;
+		border: 2px solid #4CAF50;
+		margin: 7.5px 5px 7.5px 5px;
+		float: right;
+		cursor: pointer;
+	}
+	.nav-button-group, .main-header-right{
+		display: block;
+	}
+	.map-button, .options, .main-header, .mobile-search-button{
+		display: inline-block;
+	}
+	.map-button, .options{
+		width: 50%;
+	}
+	.main-header-right, .nav-button-group, .nav-select{
+		width: 100%;
+	}
+	.section-nav{
+		padding-left: 0;
+	}
+	.main-header{
+		font-weight: bold;
+		padding-left: 5px;
+	}
+	.map-button{
+		border-bottom: 0px;
+	}
+	.options{
+		border-top: 0px;
+		margin-right: -5px;
+	}
+	.nav-select{
+		display: inline-block;
+	}
+	.dropdown-content{
+		width: 100%;
+	}
+	.form-center{
+		width: 90%;
+		margin: 0 auto;
+	}
+	.submit-left-side{
+		display: inline-block;
+	}
+	.submit-left-side{
+		width: 40px;
+	}
+	/*#js-search-form{
+		position: fixed;
+		top: 75px;
+		z-index: 10000;
+		width: 100%;
+		border-top: 2px solid #4CAF50;
+		border-bottom: 2px solid #4CAF50;
+		background-color: black;
+		padding-left: 5px;
+		padding-right: 5px;
+		text-align: center;
+	}*/
+	.form-wrapper{
+		position: fixed;
+		top: 75px;
+		z-index: 10000;
+		width: 100%;
+		border-top: 2px solid #4CAF50;
+		border-bottom: 2px solid #4CAF50;
+		background-color: black;
+		display: none;
+		padding-left: 5px;
+		padding-right: 5px;
+		text-align: center;
+	}
+	.search-bar{
+		display: block;
+	}
+	.changeColor{
+		border-color: red;
+	}
 }

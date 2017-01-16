@@ -927,6 +927,11 @@ function handleSearchSubmit(){
 		//googleMaps.getMapByArea(input);
 		//console.log(googleMaps.maps.searchMap.marker.getPosition());
 	});
+
+	$('.js-mobile-search-button').click(function(event){
+		$('.mobile-search-button').toggleClass('changeColor');
+		$('.form-wrapper').toggleClass('search-bar');
+	});
 }
 function handleImageRetrieval(){
 	$('.js-find-images').click(function(event){
@@ -962,6 +967,13 @@ function handleMarkerCheckBoxes(){
 			googleMaps.toggleMarkers(this.name);
 	});
 }
+function hideSelectedSection(section){
+	if($(section).hasClass('hidden')){}
+	else{
+		$('.dropdown-content div').removeClass('hidden');
+		$(section).addClass('hidden');
+	}
+}
 function handleNavButtons(){
 	$('.js-nav-button').click(function(event){
 		var section='';
@@ -971,20 +983,24 @@ function handleNavButtons(){
 			case 'Entertainment':
 				$('.js-top-events, .js-translation, .js-gallery').addClass('hidden');
 				section='.js-top-attractions';
+				hideSelectedSection('.dropdown-content div:first-child');
 				break;
 			case 'Events':
 				$('.js-top-attractions, .js-translation, .js-gallery').addClass('hidden');
 				section='.js-top-events';
+				hideSelectedSection('.dropdown-content div:nth-child(2)');
 				break;
 
 			case 'Images':
 				$('.js-top-events, .js-translation, .js-top-attractions').addClass('hidden');
 				section='.js-gallery';
+				hideSelectedSection('.dropdown-content div:nth-child(3)');
 				break;
 
 			case 'Translator':
 				$('.js-top-events, .js-gallery, .js-top-attractions').addClass('hidden');
 				section='.js-translation';
+				hideSelectedSection('.dropdown-content div:last-child');
 				break;
 
 			default: 
