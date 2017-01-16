@@ -461,11 +461,11 @@ var googleMaps={
 			var promise=yandexTranslate.translateRequest('name', place.name, elementNumber);
 			promise.then(function(status){var promise2=yandexTranslate.translateRequest('vicinity', place.vicinity, elementNumber);
 						promise2.then(function(status){
-							var types='';
+							/*var types='';
 							for(var i=0; i<place.types.length; i++){
 								types+=place.types[i]+", ";
-							}
-							$('.js-entertainment-list-'+elementNumber).append('<li><span class="property">TYPE</span>: '+types.replace(/_/g, ' ')+'</li>');
+							}*/
+							$('.js-entertainment-list-'+elementNumber).append('<li><span class="property">TYPE</span>: '+place.types.toString().replace(/_/g, ' ').replace(/,/g, ', ')+'</li>');
 						});});
 						/*yandexTranslate.translateRequest('type', place.types[0], elementNumber)*///});});
 			/*$.when(yandexTranslate.translateRequest('name', place.name, elementNumber))
