@@ -114,26 +114,37 @@ var eventful={
 			$.ajax({
 				type: "GET",
 				url: this.BASE_URL,//+queryString,
+				timeout: 5000,
 				data: {app_key: this.config.api_key, location: location,
 								 within: 10, date: 'Future'},
 				dataType: "jsonp",
 				/*jsonp: 'callback',
 				jsonpCallback: 'renderNearbyEvents',*/
-				success: renderNearbyEvents
+				success: renderNearbyEvents,
+				error: function(x, t, m) {
+        			if(t==="timeout") {
+            			getNearbyEvents(location);
+        			} else {
+            			alert(t+m);
+        			}
+    			}
 			});
 			/*makeCORSrequest('http://api.eventful.com/json/events/search?app_key='+this.config.api_key+
 				'&where='+location.lat+','+location.lng+'&within=10&date=Future');*/
 	},
-	addEvents: function(results, element){
-		if(results.events===null){
-			element.filter('.js-events').append('<div class="no-results">NO EVENTS ARE CURRENTLY NEARBY</div>');
+	addEvent: function(event, element, elementNumber){
+			console.log(event);
+			var elementNumber = elementNumber || 0;
+			var image='';
+			if(event.image!==null)
+				image='<img class="event-image" src="https:'+event.image.medium.url+'" alt="'+event.title+'">';
+			else
+				image='<img class="event-image" src="images/image-not-found.jpeg">';
+			if(event.description===null)
+				event.description='Not available';
+
+			element.filter('.js-events').append('<div class="event"><div class="left-event"><ul class="js-event-list-'+elementNumber+' event-list"></ul></div><div class="right-event">'+image+'</div><div class="description"><span class="property">DESCRIPTION</span>: <div class="comment">'+event.description+'</div></div></div>');
 			$('.js-top-events').append(element);
-		}
-		else{
-			for(var i=0; i < results.events.event.length; i++){
-				element.filter('.js-events').append('<ul class="js-event-list-'+i+' event-list"></ul>');
-				$('.js-top-events').append(element);
-				var event=results.events.event[i];
 				/*var properties=[results.events.event[i].title, results.events.event[i].venue_name, results.events.event[i].city_name,
 							results.events.event[i].country_name,];
 				for(var property in results.events.event[i]){
@@ -150,30 +161,44 @@ var eventful={
 				/*var start_time='';
 				var end_time='';
 				var description='';*/
-				if(event.start_time===undefined)
+			if(event.start_time===undefined)
 					event.start_time='not specified';
-				if(event.end_time===undefined)
+			if(event.end_time===undefined)
 					event.end_time='not specified';
-				if(event.description===null)
+			if(event.description===null)
 					event.description='N/A';
 
-				googleMaps.addEventMarker(event.title, {lat: Number(event.latitude), lng: Number(event.longitude)});
+			googleMaps.addEventMarker(event.title, {lat: Number(event.latitude), lng: Number(event.longitude)});
 				//console.log(event.image.medium.url);
-				var photo_url='';
+			var photo_url='';
 				/*console.log((''+event.image.medium.url).replace('file', 'http'));
 				if(event.image)
 					$('.js-events').append('<img src="'+(event.image.medium.url).replace('file', 'http')+'" alt="'+event.title+'">');*/
-				$('.js-event-list-'+i).append('<li><span class="property">EVENT</span>: <a href="'+event.url+'" target="_blank">'+event.title+'</a></li>'+
+			$('.js-event-list-'+elementNumber).append('<li><span class="property">EVENT</span>: <a href="'+event.url+'" target="_blank">'+event.title+'</a></li>'+
 										  '<li><span class="property">VENUE</span>: <a href="'+event.venue_url+'" target="_blank">'+event.venue_name+'</a></li>'+
 										  '<li><span class="property">CITY</span>: '+event.city_name+', '+event.region_name+' - '+event.country_name+'</li>'+
 										  '<li><span class="property">VENUE</span>: '+event.venue_address+'</li>'+
 										  '<li><span class="property">START TIME</span>: '+event.start_time+'</li>'+
-										  '<li><span class="property">END TIME</span>: '+event.end_time+'</li>'+
-										  '<li><span class="property">DESCRIPTION</span>: <div class="comment">'+event.description+'</div></li>');
+										  '<li><span class="property">END TIME</span>: '+event.end_time+'</li>');//+
+										  //'<li><span class="property">DESCRIPTION</span>: <div class="comment">'+event.description+'</div></li>');
+	},
+	addEvents: function(results, element){
+		console.log('MADE IT TO EVENTS');
+		console.log(results);
+		if(results.events===null){
+			element.filter('.js-events').append('<div class="no-results">NO EVENTS ARE CURRENTLY NEARBY</div>');
+			$('.js-top-events').append(element);
+		}
+		else if(results.total_items==="1")
+			this.addEvent(results.events.event, element);
+		else{
+			//console.log(results.events.event.city_name);
+			for(var i=0; i < results.events.event.length; i++){
+				this.addEvent(results.events.event[i], element, i);
 		 	}
 		}
 		$('.comment').shorten({
-			"showChars": 300,
+			"showChars": 200,
 			"moreText": "Read more...",
 			"lessText": "Show less..."
 		});
@@ -411,7 +436,7 @@ var googleMaps={
 		}
 
 	},
-	addEntertainmentDetails(place, elementNumber, contentTemplate){
+	addEntertainmentDetails: function(place, elementNumber, contentTemplate){
 		//var attractionContent=$(topAttractionsTemplate);
 		//var translated=yandexTranslate.translateRequest(place.name, 'renderName');
 		/*for(var property in translated){
@@ -700,6 +725,11 @@ function renderNearbyEvents(results){
 	//$('.js-events-list-'+elementNumber).append('<li>'+results.text[0]+'</li>');
 }
 function renderNearbyPlaces(results, status){
+	/*if(results.length===0 && status==='OK'){
+		var attractionContent=$(entertainmentTemplate);
+		$(contentTemplate).filter('.js-entertainment').append('<div class="no-results-found"><div>');
+		return false;
+	}*/
 	if(status === 'OK'){
 		if(googleMaps.maps.searchMap.placesMarkers.length===0){
 			googleMaps.addPlaces(results);
@@ -717,11 +747,16 @@ function renderNearbyPlaces(results, status){
 			attractionContent.find('.js-events');
 		$('.js-top-attractions').append(attractionContent);*/
 	}
-	else {
+	else if(status==='ZERO_RESULTS') {
 		var attractionContent=$(entertainmentTemplate);
-		attractionContent.filter('.js-entertainment').html('<span class="no-results">SORRY, NO ATTRACTIONS NEARBY</span>');
+		console.log(attractionContent);
+		console.log('MADE IT TO CHINA!');
+		attractionContent.filter('.js-entertainment').append('<div class="no-results">SORRY, NO ATTRACTIONS NEARBY</div>');
+		$('.js-top-attractions').empty().append(attractionContent);
         //alert('Geocode was not successful for the following reason: ' + status);
-    }	
+    }
+    else
+    	alert('There was an error with the Google Places request.');
 }
 function getPositionDetails(type, position){
 	var request={};
@@ -833,7 +868,9 @@ function initMaps(response){
           draggable: true,
           title: 'Chosen Location'
         });
-
+      google.maps.event.addDomListener(window, 'resize', function() {
+    	googleMaps.maps.searchMap.map.setCenter(googleMaps.maps.searchMap.marker.getPosition());
+	  });
       googleMaps.placeService = new google.maps.places.PlacesService(googleMaps.maps.searchMap.map);
       /*googleMaps.getNearbyPlaces(googleMaps.latlng);
  	  eventful.getNearbyEvents(results[0].formatted_address);*/
@@ -1027,10 +1064,14 @@ function handleMapButton(){
 				//$('.main-map:before').fadeIn(500);
 				applicationState.initialMap=false;
 				$('.js-map-button').text("Close Map").addClass('mapOpen');
+				//googleMaps.maps.searchMap.map.setCenter(googleMaps.maps.searchMap.marker.getPosition());
 			}
 			else{
 				$('.js-main-map, .js-map-background').fadeIn(500);
 				$('.js-map-button').text("Close Map").addClass('mapOpen');
+				//googleMaps.maps.searchMap.map.getProjection();
+				google.maps.event.trigger(googleMaps.maps.searchMap.map, "resize");
+				googleMaps.maps.searchMap.map.panTo(googleMaps.maps.searchMap.marker.getPosition());
 			}
 			/*$('.main-map').addClass('reveal-map');*/
 			applicationState.mapOpen=true;
