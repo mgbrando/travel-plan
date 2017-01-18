@@ -687,7 +687,7 @@ function handleSearchSubmit(){
 		renderPosition(input);
 	});
 
-	$('.js-mobile-search-button').on('click touchstart', function(event){
+	$('.js-mobile-search-button').on('click', function(event){
 		$('.mobile-search-button').toggleClass('changeColor');
 		$('.form-wrapper').toggleClass('search-bar');
 	});
@@ -701,7 +701,7 @@ function handleImageRetrieval(){
 	});*/
 
 	var options={stretchImages: true};
-	$('.js-image-links').on('click touchstart', function(event){
+	$('.js-image-links').on('click', function(event){
 		if(target===this)
 			blueimp.Gallery(flickr.imageArray);
 	});
@@ -750,7 +750,7 @@ function hideSelectedSection(section){
 /*Function used to check the current section and to hide it from the dropdown list, while at the same time changing
 the text of the navigation button to the current section*/
 function handleNavButtons(){
-	$('.js-nav-button').on('click touchstart', function(event){
+	$('.js-nav-button').on('click', function(event){
 		var section='';
 		var text=$(this).text();
 		$('.js-nav-select').text(text);
@@ -787,7 +787,7 @@ function handleNavButtons(){
 
 //Function used to fade in and fade out the map when clicking the map button. Also resizes the map.
 function handleMapButton(){
-	$('.js-map-button').unbind().on('click touchstart', function(event){
+	$('.js-map-button').unbind().on('click', function(event){
 		if(applicationState.mapOpen){
 			$('.js-main-map, .js-map-background').fadeOut(500);
 			applicationState.mapOpen=false;
