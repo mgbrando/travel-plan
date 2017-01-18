@@ -1,22 +1,28 @@
-'use strict';
+'use strict'; //Set in strict mode
 
-//const Translate = require('@google/translate');
+/*********************************
+ * jQuery custom functions
+ *********************************/
 
 (function($) {
+
+	//Function used to scroll to an element
     $.fn.goTo = function() {
         $('html, body').animate({
             scrollTop: $(this).offset().top + 'px'
         }, 'fast');
-        return this; // for chaining...
+        return this;
     }
 
+    //Function used to scroll to the top of the web app
     $.fn.goToTop = function() {
         $('html, body').animate({
             scrollTop: 0+'px'
         }, 'fast');
-        return this; // for chaining...
+        return this;
     }
 
+    //Function used to fix position the navigation menu
 	$.fn.fixMenu = function (pos) {
     	var $this = this,
         	$window = $(window);
@@ -41,50 +47,39 @@
 };
 })(jQuery);
 
+/***********************************************************
+* Templates for the entertainment and events sections
+************************************************************/
 
-
-var photoTemplate='<img src="" alt="">';
-/*var imageLinksTemplate= '<a href="images/banana.jpg" title="Banana" data-gallery>'+
-        					'<img src="images/thumbnails/banana.jpg" alt="Banana">'+
-    					'</a>'+
-    					'<a href="images/apple.jpg" title="Apple" data-gallery>'+
-        					'<img src="images/thumbnails/apple.jpg" alt="Apple">'+
-    					'</a>'+
-    					'<a href="images/orange.jpg" title="Orange" data-gallery>'+
-        					'<img src="images/thumbnails/orange.jpg" alt="Orange">'+
-    					'</a>';*/
-var descriptionTemplate='<header>Location: <span class="js-location location"></span></header>'+
-						'';
+//Template for the entertainment section
 var entertainmentTemplate=	'<section class="js-entertainment entertainment">'+
 								'<header>Top Entertainment Spots</header>'+
 						   	'</section>';
 
+//Template for the events section
 var eventsTemplate='<section class="js-events events">'+
 						'<header>Events</header>'+
 				    '</section>';
 
+/***********************************************************
+* Third party API and application states
+************************************************************/
+
+//Flicker state object with functions to interact with the flicker API
 var flickr={
 	BASE_URL: 'https://api.flickr.com/services/rest/',
 	config: {},
 	imageArray: [],
+
+	//Initializes the flickr API state object
 	init: function(options){
 		options = options || {};
 
 		this.config.api_key=options.api_key;
 	},
 
+	//Searches for photos taken around a given latitude - longitude position
 	searchPhotosByGeography: function(position){
-		//35.6895° N, 139.6917° E
-		console.log(position.lat()+ ", " + position.lng());
-		/*$.ajax({
-				type: "GET",
-				url: this.BASE_URL+this.media, 
-				data: {client_id: this.config.client_id, access_token: this.config.access_token, scope:'basic+public_content+comments', lat: 40.7128, lng: 74.0059, distance: 5000},
-				dataType: "jsonp",
-				callback: renderImages*/
-				/*success: renderImages{client_id: this.config.clientID, lat: 35.6895, lng: 139.6917}, renderImages*/
-			/*});*/
-			//$.getJSON(this.BASE_URL, {method: 'flickr.photos.search', api_key: this.config.api_key, format: 'json', has_geo: 1, lat: 35.6895, lng: 35.6895}, jsonFlickrApi);
 			$.ajax({
 				type: "GET",
 				url: this.BASE_URL,
@@ -93,51 +88,49 @@ var flickr={
 				accuracy: 11, has_geo: 2, lat: position.lat(), lon: position.lng(), extras: 'url_t, url_n, url_o'},
 				dataType: "jsonp"
 			});
-	},
-
-	echoTest: function(echoValue){
-		makeCORSrequest(BASE_URL+echoValue);
 	}
 };
+
+//Eventful state object with functions to interact with the eventful API
 var eventful={
 	BASE_URL: 'https://api.eventful.com/json/events/search',
 	config: {},
+
+	//Initializes the eventful API state object
 	init: function(options){
 		options = options || {};
 
 		this.config.api_key=options.api_key;
 		this.config.user_language=options.user_language;
 	},	
+
+	//Retrieves events that are within a 10 mile radius of the given latitude - longitude position
 	getNearbyEvents: function(location){
-			console.log('NEARBY EVENTS: '+location);
-			//console.log(location["lat"]);
 			$.ajax({
 				type: "GET",
-				url: this.BASE_URL,//+queryString,
+				url: this.BASE_URL,
 				timeout: 5000,
 				data: {app_key: this.config.api_key, location: location,
 								 within: 10, date: 'Future'},
 				dataType: "jsonp",
-				/*jsonp: 'callback',
-				jsonpCallback: 'renderNearbyEvents',*/
 				success: renderNearbyEvents,
 				error: function(x, t, m) {
         			if(t==="timeout") {
-            			getNearbyEvents(location);
+            			eventful.getNearbyEvents(location);
         			} else {
             			alert(t+m);
         			}
     			}
 			});
-			/*makeCORSrequest('http://api.eventful.com/json/events/search?app_key='+this.config.api_key+
-				'&where='+location.lat+','+location.lng+'&within=10&date=Future');*/
 	},
+
+	//Function used to add an event element to an element that has a class of .js-events
 	addEvent: function(event, element, elementNumber){
-			console.log(event);
 			var elementNumber = elementNumber || 0;
 			var image='';
-			if(event.image!==null)
-				image='<img class="event-image" src="https:'+event.image.medium.url+'" alt="'+event.title+'">';
+			if(event.image!==null && !(~(event.image.medium.url).indexOf('http:')))
+				image='<img class="event-image" src="https:'+(event.image.medium.url)+
+					'" alt="'+event.title+'">';
 			else
 				image='<img class="event-image" src="images/image-not-found.jpeg">';
 			if(event.description===null)
@@ -145,22 +138,7 @@ var eventful={
 
 			element.filter('.js-events').append('<div class="event"><div class="left-event"><ul class="js-event-list-'+elementNumber+' event-list"></ul></div><div class="right-event">'+image+'</div><div class="description"><span class="property">DESCRIPTION</span>: <div class="comment">'+event.description+'</div></div></div>');
 			$('.js-top-events').append(element);
-				/*var properties=[results.events.event[i].title, results.events.event[i].venue_name, results.events.event[i].city_name,
-							results.events.event[i].country_name,];
-				for(var property in results.events.event[i]){
-				if(i===0){
-					console.log(property);
-					//console.log(results.events.event[i]);
-				}
-				if(results.events.event[i][property]!==null)
-					$('.js-event-list-'+i).append('<li><span class="property">'+property.toUpperCase()+'</span>: '+results.events.event[i][property]+'</li>');
-				}*/
-				//var properties=Object.keys(event);
-				/*if(googleMaps.eventMarkersOn)
-				updateEventMarker({lat: Number(event.latitude), lng: Number(event.longitude)}, event.title);*/
-				/*var start_time='';
-				var end_time='';
-				var description='';*/
+
 			if(event.start_time===undefined)
 					event.start_time='not specified';
 			if(event.end_time===undefined)
@@ -169,22 +147,17 @@ var eventful={
 					event.description='N/A';
 
 			googleMaps.addEventMarker(event.title, {lat: Number(event.latitude), lng: Number(event.longitude)});
-				//console.log(event.image.medium.url);
-			var photo_url='';
-				/*console.log((''+event.image.medium.url).replace('file', 'http'));
-				if(event.image)
-					$('.js-events').append('<img src="'+(event.image.medium.url).replace('file', 'http')+'" alt="'+event.title+'">');*/
+			
 			$('.js-event-list-'+elementNumber).append('<li><span class="property">EVENT</span>: <a href="'+event.url+'" target="_blank">'+event.title+'</a></li>'+
 										  '<li><span class="property">VENUE</span>: <a href="'+event.venue_url+'" target="_blank">'+event.venue_name+'</a></li>'+
 										  '<li><span class="property">CITY</span>: '+event.city_name+', '+event.region_name+' - '+event.country_name+'</li>'+
 										  '<li><span class="property">VENUE</span>: '+event.venue_address+'</li>'+
 										  '<li><span class="property">START TIME</span>: '+event.start_time+'</li>'+
-										  '<li><span class="property">END TIME</span>: '+event.end_time+'</li>');//+
-										  //'<li><span class="property">DESCRIPTION</span>: <div class="comment">'+event.description+'</div></li>');
+										  '<li><span class="property">END TIME</span>: '+event.end_time+'</li>');
 	},
+
+	//Function used to add all the events to the .js-top-events section
 	addEvents: function(results, element){
-		console.log('MADE IT TO EVENTS');
-		console.log(results);
 		if(results.events===null){
 			element.filter('.js-events').append('<div class="no-results">NO EVENTS ARE CURRENTLY NEARBY</div>');
 			$('.js-top-events').append(element);
@@ -192,18 +165,14 @@ var eventful={
 		else if(results.total_items==="1")
 			this.addEvent(results.events.event, element);
 		else{
-			//console.log(results.events.event.city_name);
 			for(var i=0; i < results.events.event.length; i++){
 				this.addEvent(results.events.event[i], element, i);
 		 	}
 		}
-		$('.comment').shorten({
-			"showChars": 200,
-			"moreText": "Read more...",
-			"lessText": "Show less..."
-		});
 	}
 };
+
+//Yandex Translate state object that contains the functionality to interact with the Yandex Translate API
 var yandexTranslate={
 	BASE_URL: 'https://translate.yandex.net/api/v1.5/tr.json',
 	TRANSLATE_EXT: '/translate',
@@ -212,132 +181,93 @@ var yandexTranslate={
 	current_language: 'Japanese',
 	current_language_sn: 'ja',
 	attraction_translations: 0,
-	/*attraction_translation_done: false,
-	event_translations_done: false,*/
 	languages: {},
 	config: {},
 
+	//Initializes the yandex translate API state object
 	init: function(options){
 		options = options || {};
 
 		this.config.api_key=options.api_key;
 		this.config.user_language=options.user_language;
 	},
+
+	//Function used to translate a string from the english language to the current_language
 	translateRequest: function(property, to_translate, elementNumber){
-			//var parameters={key: this.config.api_key, format: 'json', callback: callback, target: this.config.user_language};
-			/*var url=this.BASE_URL+'?';
-			if(Array.isArray(text)){
-				text.forEach(function(element){
-					url+='q='+element+'&';
-				});
-			}
-			else
-				url+='q='+text;*/
-			/*console.log('Text: '+to_translate);
-			var queryString='?';*///'?key='+this.config.api_key+'&lang='+this.config.user_language+'&options='+1+'&callback='+callback;
-			//var translateType = typeof to_translate;
-			/*if(typeof to_translate==='object'){
-				for(var property in to_translate){
-					queryString+='&text='+to_translate[property];
-				}
-			}
-			else{*/
-				//queryString+='&text='+to_translate;
-				//queryString+='&text='+to_translate;
-			//}
-			/*console.log('Querystring: '+queryString);
-			console.log('Complete URL: '+this.BASE_URL+queryString);*/
-			//$.getJSON(this.BASE_URL+queryString, {key: this.config.api_key, lang: this.config.user_language, options: 1}, renderName);
 			var deferred=$.Deferred();
 			$.ajax({
 				type: "GET",
-				url: this.BASE_URL+this.TRANSLATE_EXT,//+queryString,
+				url: this.BASE_URL+this.TRANSLATE_EXT,
 				data: {key: this.config.api_key, lang: this.config.user_language, options: 1, text: to_translate},
 				dataType: "jsonp",
-				/*jsonp: 'callback',
-				jsonpCallback: 'renderName',*/
 				success: function(results){renderTranslatedDetail(results, property, elementNumber); deferred.resolve(property);}
 			});
 			return deferred.promise();
 	},
+	
+	/*Function used to translate the string in the translation textbox. 
+	The success function returned is different than translateRequest.*/
 	translateTextBox: function(textToTranslate){
 			$.ajax({
 				type: "GET",
-				url: this.BASE_URL+this.TRANSLATE_EXT,//+queryString,
+				url: this.BASE_URL+this.TRANSLATE_EXT,
 				data: {key: this.config.api_key, lang: this.config.user_language+'-'+this.current_language_sn, options: 1, text: textToTranslate},
 				dataType: "jsonp",
-				/*jsonp: 'callback',
-				jsonpCallback: 'renderName',*/
 				success: renderTextBoxTranslation
 			});
 	},
+
+	//Function used to translate the translation section header language given the current_language
 	getTranslationHeaderLanguage: function(){
 			$.ajax({
 				type: "GET",
-				url: this.BASE_URL+this.GETLANGS_EXT,//+queryString,
+				url: this.BASE_URL+this.GETLANGS_EXT,
 				data: {key: this.config.api_key, ui: this.config.user_language},
 				dataType: "jsonp",
-				/*jsonp: 'callback',
-				jsonpCallback: 'renderName',*/
 				success: function(results){
-					console.log(results.langs);
-					/*Object.keys(results.langs).forEach(function(key){
-						console.log('LANGUAGES: '+results.langs); 
-					});*/
 					renderTranslationHeader(results.langs[yandexTranslate.current_language]);
 				}
 			});
 	},
+
+	//Function used to get the current_language(long name) using the current_language_sn(short name)
 	getLanguageName: function(){
 		var deferred=$.Deferred();
 			$.ajax({
 				type: "GET",
-				url: this.BASE_URL+this.GETLANGS_EXT,//+queryString,
+				url: this.BASE_URL+this.GETLANGS_EXT,
 				data: {key: this.config.api_key, ui: this.config.user_language},
 				dataType: "jsonp",
-				/*jsonp: 'callback',
-				jsonpCallback: 'renderName',*/
 				success: function(results){
-					console.log(results.langs);
-					/*Object.keys(results.langs).forEach(function(key){
-						console.log('LANGUAGES: '+results.langs); 
-					});*/
-					console.log(results.langs[yandexTranslate.current_language_sn]);
 					yandexTranslate.current_language=results.langs[yandexTranslate.current_language_sn];
-					//renderTranslationHeader(results.langs[yandexTranslate.current_language]);
 					deferred.resolve('OK');
 				}
 			});
 		return deferred.promise();
 	},
-	//FIX THIS geocode is giving a weird number instead of a 2 letter short_name
+
+	//Function used to get the language of a country using its country code
 	setCurrentLanguage: function(countryCode){
 			var deferred=$.Deferred();
 			$.ajax({
 				type: "GET",
-				url: 'https://restcountries.eu/rest/v1/alpha?codes='+countryCode,//+queryString,
-				//dataType: "jsonp",
-				/*jsonp: 'callback',
-				jsonpCallback: 'renderName',*/
+				url: 'https://restcountries.eu/rest/v1/alpha?codes='+countryCode,
 				success: function(results){
-					console.log(results);
 					yandexTranslate.current_language_sn=results[0].languages[0];
-					//yandexTranslate.current_language=results[0].languages[0];
 					var promise=yandexTranslate.getLanguageName();
 					promise.then(function(status){deferred.resolve('OK');});
 				}
 			});
 			return deferred.promise();
 	},
-	//https://restcountries.eu/rest/v1/lang/et
-	speakTranslation: function(){
+	
+	//Function to later be used to speak back the translation in the appropriate voice and mannerism of the country
+	/*speakTranslation: function(){
 			$.ajax({
 				type: "GET",
-				url: this.BASE_URL+this.GETLANGS_EXT,//+queryString,
+				url: this.BASE_URL+this.GETLANGS_EXT,
 				data: {key: this.config.api_key, ui: this.config.user_language},
 				dataType: "jsonp",
-				/*jsonp: 'callback',
-				jsonpCallback: 'renderName',*/
 				success: function(results){
 					var language=results.langs[yandexTranslate.current_language_sn];
 					if(language==='English')
@@ -345,49 +275,19 @@ var yandexTranslate={
 						responsiveVoice.speak($('.js-text-translation').text(), language+' Female');
 				}
 			});
-	},
+	},*/
+
+	//Function used to test if the current location has changed
 	locationChanged: function(currentLocation){
 		if(this.current_location!==currentLocation)
 			return true;
 		return false;
 	}
 };
-/*var googleTranslate={
-	TRANSLATE_BASE_URL: 'https://translation.googleapis.com/language/translate/v2',
-	config: {},
 
-	init: function(options){
-		options = options || {};
+/*State object that is used to store variables and functions that are used for interacting with google related APIs,
+including Google Maps, Google Places, and Google Geocode.*/
 
-		this.config.api_key=options.api_key;
-		this.config.user_language=options.user_language;
-	},
-	translateRequest: function(text, callback){
-			//var parameters={key: this.config.api_key, format: 'json', callback: callback, target: this.config.user_language};
-			var url=this.BASE_URL+'?';
-			if(Array.isArray(text)){
-				text.forEach(function(element){
-					url+='q='+element+'&';
-				});
-			}
-			else
-				url+='q='+text;
-
-			$.ajax({
-				type: "GET",
-				url: url,
-				data: {key: this.config.api_key, format: 'json', callback: callback, target: this.config.user_language},
-				dataType: "jsonp"
-			});
-	}/*,
-	translateTextBox: function(text){
-
-	},
-	translateLocations: function(textArray){
-
-	}
-
-};*/
 var googleMaps={
 	MAPS_BASE_URL: 'https://maps.googleapis.com/maps/api/js',
 	GEOCODER_BASE_URL: 'https://maps.googleapis.com/maps/api/geocode/json',
@@ -418,45 +318,27 @@ var googleMaps={
 	maps: {searchMap: {map: null, marker: null, placeMarkersOn: false, eventMarkersOn: false, placesMarkers: [], eventsMarkers: []}, imageMap: {map: null, marker: null}},
 	config:{},
 
+	//Initializes the google maps API state object
 	init: function(options){
 		options = options || {};
 
 		this.config.api_key=options.api_key;
 	},
+
+	//Function used to get the details of a place given a place_id.
 	getPlaceDetails: function(place_id){
 		this.placeService.getDetails({location: place_id}, renderPlaceDetails);
 	},
+
+	//Function used to get nearby attractions(places) given a latitude-longitude position
 	getNearbyPlaces: function(position){
-		console.log('LOCATION: '+position);
 		this.placeService.nearbySearch({location: position, radius: 5000, keyword: 'entertainment'}, renderNearbyPlaces);
 	},
-	translate: function(input, target){
-		if(!Array.isArray(input)){
-			input=[input];
-		}
 
-	},
+	//Function used to create the entertainment html elements and translate the name an vicinity properties
 	addEntertainmentDetails: function(place, elementNumber, contentTemplate){
-		//var attractionContent=$(topAttractionsTemplate);
-		//var translated=yandexTranslate.translateRequest(place.name, 'renderName');
-		/*for(var property in translated){
-			console.log(property+': '+translated[property]);
-			if(typeof place[property]==='string'){
-				yandexTranslate.translateRequest(place[property], 'renderName');
-				//console.log('Translated Property: '+yandexTranslate.translateRequest(place[property], 'renderName'));
-			}
-		}*/
-		//console.log('Translated Place: '+translated.text);
-		/*for(var property in place){
-			console.log(property+': '+place[property]);
-			if(typeof place[property]==='string'){
-				console.log('Translated Property: '+yandexTranslate.translateRequest(place[property], 'renderName'));
-			}
-		}*/
-		//console.log(place);
 		var photo='';
 		if(place.photos){
-			//console.log(place.photos);
 				photo='<img class="place-image" src="'+place.photos[0].getUrl({maxWidth: 100, maxHeight: 100})+'">';
 		}
 		else{
@@ -468,41 +350,19 @@ var googleMaps={
 		}
 		else
 			rating="N/A";
+
         contentTemplate.filter('.js-entertainment').append('<div class="place-wrapper"><div class="place-elements"><div class="left-elements">'+photo+'<div class="place-stats"><img class="place-icon" src="'+place.icon+'">'+
         	'<div class="rating"><span class="property">Rating:</span>'+rating+'</div></div></div></div><ul class="js-entertainment-list-'+elementNumber+' entertainment-list">'+
         			'</ul></div>');
-        /*for(var property in place){
-			console.log(property+': '+place[property]);
-			if(typeof place[property]==='string' && place[property]!=='GOOGLE' && place[property]!==undefined){
-				yandexTranslate.translateRequest(property+': '+place[property], elementNumber, 'renderDetail');
-				console.log('Translated Property: '+yandexTranslate.translateRequest(place[property], 'renderName'));
-			}
-			else{ console.log(place[property]);}
-		}*/
-		/*yandexTranslate.translateRequest(place.name, elementNumber)
-			.promise().done()
-			.promise().done();*/
-			//yandexTranslate.translateRequest('name', place.name, elementNumber).done(yandexTranslate.translateRequest('vicinity', place.vicinity, elementNumber).done(yandexTranslate.translateRequest('type', place.types[0], elementNumber)));
-			var promise=yandexTranslate.translateRequest('name', place.name, elementNumber);
-			promise.then(function(status){var promise2=yandexTranslate.translateRequest('vicinity', place.vicinity, elementNumber);
-						promise2.then(function(status){
-							/*var types='';
-							for(var i=0; i<place.types.length; i++){
-								types+=place.types[i]+", ";
-							}*/
-							$('.js-entertainment-list-'+elementNumber).append('<li><span class="property">TYPE</span>: '+place.types.toString().replace(/_/g, ' ').replace(/,/g, ', ')+'</li>');
-						});});
-						/*yandexTranslate.translateRequest('type', place.types[0], elementNumber)*///});});
-			/*$.when(yandexTranslate.translateRequest('name', place.name, elementNumber))
-				.then($.when(yandexTranslate.translateRequest('vicinity', place.vicinity, elementNumber))
-					.then(yandexTranslate.translateRequest('type', place.types[0], elementNumber)));*/
-                /*			'<li>'+place.name+'</li>'+
-        			'<li>'+place.formatted_address+'</li>'+
-        			'<li>'+place.formatted_phone_number+'</li>'+
-        			'<li>'+place.url+'</li>'+
-        			'<li>'+place.vicinity+'</li>'+*/
-        //return contentTemplate;
+
+		var promise=yandexTranslate.translateRequest('name', place.name, elementNumber);
+		promise.then(function(status){var promise2=yandexTranslate.translateRequest('vicinity', place.vicinity, elementNumber);
+										promise2.then(function(status){
+											$('.js-entertainment-list-'+elementNumber).append('<li><span class="property">TYPE</span>: '+place.types.toString().replace(/_/g, ' ').replace(/,/g, ', ')+'</li>');
+										});});
 	},
+
+	//Function used to add attraction(place) markers
 	addPlaces: function(places){
 		var attractionContent=$(entertainmentTemplate);
 		var map=null;
@@ -518,27 +378,23 @@ var googleMaps={
           		title: places[i].name
         		});
 				
-				//console.log(attractionContent.filter('.js-events').html());
-				//attractionContent.find('.js-events');
 				this.addEntertainmentDetails(places[i], i, attractionContent);
-				/*console.log(attractionContent.filter('.js-events').html());
-				console.log(attractionContent.html());*/
 
-        		googleMaps.maps.searchMap.placesMarkers[i].addListener('click', function(event){
+				//Function used to render the details for a place when a placemarker is clicked (Future)
+        		/*googleMaps.maps.searchMap.placesMarkers[i].addListener('click', function(event){
         			renderPlaceDetails(places[i]);
-        		});
+        		});*/
 
 			}
 			$('.js-entertainment').remove();
 			$('.js-top-attractions').append(attractionContent);
 	},
+
+	//Function used to update attraction(place) markers
 	updatePlaces: function(places){
-		//console.log(places);
-		//console.log(places.length+' is less than '+this.maps.searchMap.placesMarkers.length);
 		var attractionContent=$(entertainmentTemplate);
 		if(places.length<this.maps.searchMap.placesMarkers.length || (places.length>this.maps.searchMap.placesMarkers.length
 			&& this.maps.searchMap.placesMarkers.length<10)){
-			console.log("Hyenas!");
 			this.removePlaceMarkers();
 			this.addPlaces(places);
 		}
@@ -554,12 +410,16 @@ var googleMaps={
 			$('.js-top-attractions').append(attractionContent);
 		}	
 	},
+
+	//Function used to remove all attraction(place) markers
 	removePlaceMarkers: function(){
 		for(var i=0; i<this.maps.searchMap.placesMarkers.length; i++){
 			this.maps.searchMap.placesMarkers[i].setMap(null);
 		}
 		this.maps.searchMap.placesMarkers = [];
 	},
+
+	//Function used to remove all event markers
 	removeEventMarkers:function(){
 		var deferred=$.Deferred();
 		for(var i=0; i<this.maps.searchMap.eventsMarkers.length; i++){
@@ -569,18 +429,15 @@ var googleMaps={
 		deferred.resolve('OK');
 		return deferred.promise();
 	},
+
+	//Function used to update an event marker
 	updateEventMarker(marker, position, title){
 		marker.setPosition(position);
 		marker.setTitle(title);
 	},
-	toggleMarkers: function(markerType){
 
-		console.log('PlaceMarkers: ');
-		console.log('PlaceMarkersOn: '+this.maps.searchMap.eventMarkersOn);
-		console.log(this.maps.searchMap.placesMarkers);
-		console.log('EventMarkers: ');
-		console.log('EventMarkersOn: '+this.maps.searchMap.eventMarkersOn);
-		console.log(this.maps.searchMap.eventsMarkers);
+	//Function used to toggle place or event markers on and off on the map
+	toggleMarkers: function(markerType){
 		if(markerType==='places'){
 			if(this.maps.searchMap.placeMarkersOn){
 				this.hideMarkers(googleMaps.maps.searchMap.placesMarkers);
@@ -602,16 +459,22 @@ var googleMaps={
 			}
 		}
 	},
+
+	//Function used to actually show the markers supplied
 	showMarkers: function(markers){
 		markers.forEach(function(marker){
 			marker.setMap(googleMaps.maps.searchMap.map);
 		});
 	},
+
+	//Function used to actually hide the markers supplied
 	hideMarkers: function(markers){
 		markers.forEach(function(marker){
 			marker.setMap(null);
 		});
 	},
+
+	//Function used to add an Event Marker to the map
 	addEventMarker: function(name, latlng){
 		var map=null;
 		if(this.maps.searchMap.eventMarkersOn)
@@ -625,127 +488,62 @@ var googleMaps={
           	title: name
         }));
 	}
-	/*getMapByArea: function(area){
-			$.ajax({
-				type: "GET",
-				url: this.GEOCODER_BASE_URL,
-				data: {key: this.config.api_key, address: area, callback: renderMap},
-				dataType: "jsonp"
-			});		
-	},
-	getNearbyPlaces: function(){
-			$.ajax({
-				type: "GET",
-				url: this.PLACES_BASE_URL+this.PLACES_SEARCH,
-				data: {key: this.config.api_key, location: this.latlng},
-				dataType: "jsonp",
-				success: renderPlaces
-			});	
-	},
-	getPlaceDetails: function(place_id){
-			$.ajax({
-				type: "GET",
-				url: this.PLACES_BASE_URL+this.PLACES_SEARCH,
-				data: {key: this.config.api_key, place_id: place_id},
-				dataType: "jsonp",
-				success: renderPlaceDetails
-			});			
-	}*/
 };
+
+
+//State object to hold the travel plan app independent application variables
 var applicationState={
 	currentSection: 'Events',
 	mapOpen: false,
 	initialMap: true
 };
 
+/***********************************************************
+* Application helper and render functions
+************************************************************/
+
+/*Function used to render the header for the translation section with the current_language if a language is 
+not supplied*/
 function renderTranslationHeader(language){
-	console.log(yandexTranslate.current_language);
-	$('.js-language').text(yandexTranslate.current_language);
+	language = language || yandexTranslate.current_language;
+	$('.js-language').text(language);
 }
-/*function getTranslatedLanguage(translatedLanguages){
-	console.log('MADE IT HERE!');
-	var maxUsedLanguage='en';
-	for(var language in translatedLanguages){
-		console.log(language);
-		if(translatedLanguages[language] > translatedLanguages[maxUsedLanguage])
-			maxUsedLanguage=language;
-	}
-	yandexTranslate.current_language_sn=maxUsedLanguage;
-	yandexTranslate.getTranslationHeaderLanguage();
-	console.log(maxUsedLanguage);
-}
-function analyzeLanguage(results){
-	if(yandexTranslate.locationChanged(googleMaps.latlng)){
-		yandexTranslate.current_location=googleMaps.latlng;
-		yandexTranslate.attraction_translations=0;
-		console.log('YUP');
-		yandexTranslate.languages={};	
-	}
-	if(yandexTranslate.languages[results.detected.lang])
-		yandexTranslate.languages[results.detected.lang]++;
-	else
-		yandexTranslate.languages[results.detected.lang]=1;
 
-	yandexTranslate.attraction_translations++;
-	//console.log(yandexTranslate.attraction_translations);
-	if(yandexTranslate.attraction_translations===10){
-		getTranslatedLanguage(yandexTranslate.languages);
-	}
-	console.log(yandexTranslate.languages);
+//Future functionality of rendering a single place's details
+/*function renderPlaceDetails(place){
+
 }*/
-function renderTranslatedDetail(results, property, elementNumber){
-	//console.log(results);
 
+//Function used to render a translated attraction detail
+function renderTranslatedDetail(results, property, elementNumber){
 	$('.js-entertainment-list-'+elementNumber).append('<li><span class="property">'+property.toUpperCase()+'</span>: '+results.text[0]+'</li>');
-	//analyzeLanguage(results);
-	/*console.log(results);
-	console.log(results.text[0]);
-	return results.text[0];*/
 }
-function renderPlaceDetails(results, status){
-	if(status === 'OK'){
-		//$('.js-description')
-	}
-	else {
-        alert('Geocode was not successful for the following reason: ' + status);
-    }	
-}
+
+//Function used to clear old event markers and render the new events
 function renderNearbyEvents(results){
 	var eventsContent=$(eventsTemplate);
 	var elementNumber=0;
 	$('.js-events').remove();
-	console.log('HELLO THERE!');
-	console.log(results);
 	var promise=googleMaps.removeEventMarkers();
-	promise.then(function(status){eventful.addEvents(results, eventsContent);});
-	console.log(googleMaps.maps.searchMap.eventsMarkers);
-	//$('.js-events').remove();
-	//console.log(eventsContent.html());
-	//attractionContent.filter('.js-events').append('<ul class="js-event-list-'+elementNumber+' event-list"></ul>');
-	//$('.js-events-list-'+elementNumber).append('<li>'+results.text[0]+'</li>');
+	promise.then(function(status){
+		eventful.addEvents(results, eventsContent);
+		$('.comment').shorten({
+			"showChars": 200,
+			"moreText": "Read more...",
+			"lessText": "Show less..."
+		});
+	});
 }
+
+//Function used to render the nearby attractions
 function renderNearbyPlaces(results, status){
-	/*if(results.length===0 && status==='OK'){
-		var attractionContent=$(entertainmentTemplate);
-		$(contentTemplate).filter('.js-entertainment').append('<div class="no-results-found"><div>');
-		return false;
-	}*/
 	if(status === 'OK'){
 		if(googleMaps.maps.searchMap.placesMarkers.length===0){
 			googleMaps.addPlaces(results);
 		}
-		//console.log(results);
 		else{
 			googleMaps.updatePlaces(results);
 		}
-		/*displayEntertainmentItem()
-		displayEventItem()
-		displayEvents()*/
-		/*var attractionContent=$(topAttractionsTemplate);
-		for(var i=0; i<places.length && i<10; i++){
-			attractionContent.find('.js-entertainment');
-			attractionContent.find('.js-events');
-		$('.js-top-attractions').append(attractionContent);*/
 	}
 	else if(status==='ZERO_RESULTS') {
 		var attractionContent=$(entertainmentTemplate);
@@ -753,46 +551,45 @@ function renderNearbyPlaces(results, status){
 		console.log('MADE IT TO CHINA!');
 		attractionContent.filter('.js-entertainment').append('<div class="no-results">SORRY, NO ATTRACTIONS NEARBY</div>');
 		$('.js-top-attractions').empty().append(attractionContent);
-        //alert('Geocode was not successful for the following reason: ' + status);
     }
     else
     	alert('There was an error with the Google Places request.');
 }
+
+/*Function used to get the details of a place given a google accepted address format or 
+a latitude and longitude position*/
 function getPositionDetails(type, position){
 	var request={};
 	request[type]=position;
 	googleMaps.search_type=type;
 	googleMaps.geocoder.geocode(request, renderMarkersAndImages);
 }
-function getMarkerPositionDetails(location){
 
-}
+//Function used to render the translated text in the text translator section
 function renderTextBoxTranslation(results){
-		//console.log(results.text[0]);
 		$('.js-text-translation').text(results.text[0]);
 }
-function renderLocationTranslations(results, status){
 
-}
+//Function used to render markers of attractions and events nearby as well as the images for the image gallery
 function renderMarkersAndImages(results, status){
+	var bad_submit_request=$('.js-bad-map-submit-request');
+	var bad_drag_request=$('.js-bad-map-drag-request');
     if (status === 'OK') {
-    	console.log('RAWR: '+results[0].geometry.location);
+    	if(!bad_submit_request.hasClass('hidden')){
+    		bad_submit_request.toggleClass('hidden');
+    	}
+    	if(!bad_drag_request.hasClass('hidden')){
+    		bad_drag_request.toggleClass('hidden');
+    	}
     	googleMaps.latlng=results[0].geometry.location;
     	googleMaps.maps.searchMap.map.setCenter(googleMaps.latlng);
     	if(googleMaps.search_type==='address')
         	googleMaps.maps.searchMap.marker.setPosition(googleMaps.latlng);
-        //$('#js-search-form').children('.js-search-input').val('');
+        
         googleMaps.place_id=results[0].place_id;
-        console.log(googleMaps.place_id);
-        //googleMaps.getPlaceDetails();
-        //alert('RESULTS: '+results[0].geometry.location);
+
         var countryCode='';
-        /*for(var obj in results[0].address_components){
-        	if(obj.types[0]==='country'){
-        		countryCode=obj.short_name;
-        		break;
-        	}
-        }*/
+
         for(var i=results[0].address_components.length-1; i >=0; i--){
         	if(results[0].address_components[i].types[0]==='country'){
         		countryCode=(results[0].address_components[i].short_name).toLowerCase();
@@ -800,31 +597,30 @@ function renderMarkersAndImages(results, status){
         	}
         }
         $('.js-address').text(results[0].formatted_address);
+
         var promise=yandexTranslate.setCurrentLanguage(countryCode);
         promise.then(function(status){renderTranslationHeader();});
         googleMaps.getNearbyPlaces(results[0].geometry.location);
-        //googleMaps.getNearbyPlaces();
+
         $('.js-search-input').val('');
-        //eventful.getNearbyEvents(results[0].formatted_address);
+
         eventful.getNearbyEvents(results[0].geometry.location.lat()+','+results[0].geometry.location.lng());
-        console.log('RIGHT BEFORE RENDERTRANSLATIONHEADER!');
         flickr.searchPhotosByGeography(googleMaps.latlng);
-        /*googleMaps.geocoder.geocode({'placeId': results[0].place_id}, function(results, status){
-        	if(status==='OK'){
-        		console.log(results[0]);
-        		$('.js-search-input').val(results[0].formatted_address);
-        		eventful.getNearbyEvents(results[0].formatted_address);
-        	}
-        });*/
-        //$('.js-top-attractions').empty().append(topAttractionsTemplate);
-    } else {
-    		console.log('LOOKS LIKE WE MADE IT!');
-    		$('.js-bad-map-request').removeClass('hidden');
-            //alert('Geocode was not successful for the following reason: ' + status);
+    } 
+    else {
+    		if(googleMaps.search_type==='address'){
+    			if(bad_submit_request.hasClass('hidden'))
+    				bad_submit_request.toggleClass('hidden');
+    		}
+    		else{
+    			if(bad_drag_request.hasClass('hidden'))
+    				bad_drag_request.toggleClass('hidden');
+    		}
     }	
 }
+
+//Function used to start the entire process of retrieving information about a location
 function renderPosition(input){
-	//var place_id='';
 	var places=null;
 	if(typeof input === 'string'){
 		getPositionDetails('address', input);
@@ -833,177 +629,116 @@ function renderPosition(input){
 		getPositionDetails('location', input);
 	}
 }
-/*function renderMap(geocode){
-	console.log(geocode);
-	googleMaps.geocoder = new google.maps.Geocoder();
-    var latlng = new google.maps.LatLng(geocode.geometry.location[0], geocode.geometry.location[1]);
-    var mapOptions = {
-      zoom: 8,
-      center: latlng
-    }
-    googleMaps.maps.searchMap.map = new google.maps.Map(document.getElementById('search-map'), mapOptions);
 
-}*/
-/*function renderPlaces(response){
-	console.log(response);
-	var places=response[1];
-	console.log(places);
-}
-function renderPlaceDetails(response){
-	console.log(response);
-	console.log(response[0].name);
-}*/
-function initMaps(response){
-      googleMaps.latlng = {lat: 36.204824, lng: 138.252924}; 
-      googleMaps.geocoder = new google.maps.Geocoder();
-      googleMaps.maps.searchMap.map=new google.maps.Map(document.getElementById('search-map'),
-			{center: googleMaps.latlng,
-			zoom: 8,
-			mapTypeId: 'terrain'});
-
-      googleMaps.maps.searchMap.marker=new google.maps.Marker({
-          position: googleMaps.latlng,
-          map: googleMaps.maps.searchMap.map,
-          icon: googleMaps.ICON_BASE_URL+googleMaps.icons.position, 
-          draggable: true,
-          title: 'Chosen Location'
-        });
-      google.maps.event.addDomListener(window, 'resize', function() {
-    	googleMaps.maps.searchMap.map.setCenter(googleMaps.maps.searchMap.marker.getPosition());
-	  });
-      googleMaps.placeService = new google.maps.places.PlacesService(googleMaps.maps.searchMap.map);
-      /*googleMaps.getNearbyPlaces(googleMaps.latlng);
- 	  eventful.getNearbyEvents(results[0].formatted_address);*/
-  	  /*map.addListener('center_changed', function() {
-    	// 3 seconds after the center of the map has changed, pan back to the
-    	// marker.
-    	window.setTimeout(function() {
-      	map.panTo(marker.getPosition());
-        }, 5000);
-  	  });*/
-
-  	  googleMaps.maps.searchMap.marker.addListener('dragend', function(event){
-  	  	renderPosition(googleMaps.maps.searchMap.marker.getPosition());
-  	  	//$('#js-search-form').children('.js-search-input').val('');
-  	  });
-  	  renderPosition(googleMaps.maps.searchMap.marker.getPosition());
-}
+//Function used as the callback by the Flickr API. Calls renderImages.
 function jsonFlickrApi(json){
-	//console.log(json);
 	renderImages(json);
 }
+
+//Function used to render the images in the image gallery
 function renderImages(imageData){
-	//var imageSection=$('<header class="js-image-header image-header">Search Results: </header><div class="js-image-listings image-listings"></div>');
-	console.log('Total photos: '+imageData.photos.total);
 	if(imageData.photos.total!=='0'){
-	var images='';
-	var blackList={};
-	var links='';
-	flickr.imageArray=[];
-	imageData.photos.photo.forEach(function(photo){
-		if(photo.url_t!==undefined && photo.url_n!==undefined){
-			//images+='<img src="'+photo.url_t+'" alt="'+photo.title+'">\n';
-			flickr.imageArray.push({
-				title: photo.title,
-				href: photo.url_n,
-				type: 'image/jpeg',
-				thumbnail: photo.url_t
-			});
-			var height=Number(photo.height_t);
-			console.log(photo.url_o);
-			if(height < 66){
-				var padding=(66-height)/2;
-				links+='<a class=".js-image-links image-links" href="'+photo.url_n+'" title="'+photo.title+'" data-gallery>'+
-									//'<div style="background-image: url("'+photo.url_t+'");"></div></a>';
+		var images='';
+		var blackList={};
+		var links='';
+		flickr.imageArray=[];
+		imageData.photos.photo.forEach(function(photo){
+			if(photo.url_t!==undefined && photo.url_n!==undefined){
+				flickr.imageArray.push({
+					title: photo.title,
+					href: photo.url_n,
+					type: 'image/jpeg',
+					thumbnail: photo.url_t
+				});
+				var height=Number(photo.height_t);
+
+				if(height < 66){
+					var padding=(66-height)/2;
+					links+='<a class=".js-image-links image-links" href="'+photo.url_n+'" title="'+photo.title+'" data-gallery>'+
 									'<div style="padding-top: '+padding+'px; padding-bottom: '+padding+'px;"><img class="image" src="'+photo.url_t+'" alt="'+photo.title+'"></div></a>';
 
-			}
-			else{
-				links+='<a class=".js-image-links image-links" href="'+photo.url_n+'" title="'+photo.title+'" data-gallery>'+
-									//'<div style="background-image: url("'+photo.url_t+'");"></div></a>';
+				}
+				else{
+					links+='<a class=".js-image-links image-links" href="'+photo.url_n+'" title="'+photo.title+'" data-gallery>'+
 									'<div><img class="image" src="'+photo.url_t+'" alt="'+photo.title+'"></div></a>';
+				}
 			}
-
-
-		}
-
-		/*if(!blackList[photo.owner]){
-			blackList[photo.owner]=1;
-		}
-		else if(blackList[photo.owner] < 3){
-			blackList[photo.owner]+=1;
-			console.log(blackList[photo.owner]);
-			images+='<img src="'+photo.url_n+'" alt="'+photo.title+'">\n';
-			console.log('Used: '+photo.owner);
-		}
-		else{ console.log('Skipped: '+photo.owner); }*/
-	});
-	//gallery=blueimp.Gallery(links, options);
-	$('#links').empty().append(links);
-	//imageSection.filter('.js-image-listings').append(images);
+		});
+		$('#links').empty().append(links);
 	}
-	else{
+	else
 		$('#links').empty().append('<div class="no-results">SORRY, NO IMAGES FOUND NEAR THIS LOCATION</div>');
-		//console.log("WHAT'S HAPPENING!");
-		//imageSection.filter('.js-image-listings').append('<span class=no-results>SORRY, NO IMAGES FOUND NEAR THIS LOCATION</span>');
-	}
-	//$('.js-images-section').empty().append(imageSection);
 }
+
+//Function used to hide the translated section of the translation section when another navigation button is clicked.
 function clickedAwayFromTranslation(){
 	$('.js-translated-section').animate({height: '0'}, fast);
 }
-//Handlers
+
+/***********************
+	Event Handlers
+ ***********************/
+
+//Function used to handle the search form being revealed/hidden and when the form is submitted
 function handleSearchSubmit(){
 	$('#js-search-form').submit(function(event){
-		console.log('hi');
 		event.preventDefault();
-		//googleMaps.geocoder.geocode(googleMaps.maps.searchMap.marker.getPosition);
 		var input = $(this).children('.js-search-input').val();
 		renderPosition(input);
-		//instagram.searchPhotosByGeography(input);
-		//googleMaps.getMapByArea(input);
-		//console.log(googleMaps.maps.searchMap.marker.getPosition());
 	});
 
-	$('.js-mobile-search-button').click(function(event){
+	$('.js-mobile-search-button').on('click touchstart', function(event){
 		$('.mobile-search-button').toggleClass('changeColor');
 		$('.form-wrapper').toggleClass('search-bar');
 	});
 }
+
+//Function used to show the blueimp gallery when a thumbnail image is clicked
 function handleImageRetrieval(){
-	$('.js-find-images').click(function(event){
+	//To be used as a click button for changing the images based off of position (Future)
+	/*$('.js-find-images').on('click touchstart', function(event){
 		flickr.searchPhotosByGeography(googleMaps.maps.searchMap.marker.getPosition());
-	});
+	});*/
 
 	var options={stretchImages: true};
-	$('.js-image-links').click(function(event){
+	$('.js-image-links').on('click touchstart', function(event){
 		if(target===this)
 			blueimp.Gallery(flickr.imageArray);
 	});
 }
-function handleHeaderClick(){
-	$('.js-translator-header').click(function(event){
+
+//Function used to toggle the translation header to show the translation text box (deprecated)
+/*function handleHeaderClick(){
+	$('.js-translator-header').on('click touchstart', function(event){
 		$(this).children('.js-header-image').toggleClass('header-image-clicked');
 		$(this).siblings('.js-textbox').toggleClass('hidden');
 	});
-}
+}*/
+
+//Function used to show translation on submit in the translation section
 function handleTextTranslation(){
 	$('#js-translation-form').submit(function(event){
 		event.preventDefault();
 		var textToTranslate=$(this).children('.js-textarea').val().trim();
 		$('.js-translated-section').goTo().animate({height: '100%'}, 'slow', yandexTranslate.translateTextBox(textToTranslate));
 	});
-	$('.js-text-box').on('click', '.js-text-to-speech', function(event){
+
+	//Function for future texxt-to-speech functionality
+	/*$('.js-text-box').on('click', '.js-text-to-speech', function(event){
 		responsiveVoice.setDefaultVoice("US English Female");
 		yandexTranslate.speakTranslation();
 	});
-	console.log(responsiveVoice.getVoices());
+	console.log(responsiveVoice.getVoices());*/
 }
+
+//Function used to toggle place and event markers when the associated checkbox is clicked
 function handleMarkerCheckBoxes(){
 	$('.js-marker-check').change(function(event){
 			googleMaps.toggleMarkers(this.name);
 	});
 }
+
+//Function used to hide a nav dropdown element in the list when it is the name of the current section
 function hideSelectedSection(section){
 	if($(section).hasClass('hidden')){}
 	else{
@@ -1011,8 +746,11 @@ function hideSelectedSection(section){
 		$(section).addClass('hidden');
 	}
 }
+
+/*Function used to check the current section and to hide it from the dropdown list, while at the same time changing
+the text of the navigation button to the current section*/
 function handleNavButtons(){
-	$('.js-nav-button').click(function(event){
+	$('.js-nav-button').on('click touchstart', function(event){
 		var section='';
 		var text=$(this).text();
 		$('.js-nav-select').text(text);
@@ -1043,16 +781,13 @@ function handleNavButtons(){
 			default: 
 				break;
 		}
-		console.log(section);
 		$(section).removeClass('hidden').goToTop();
-		/*$(section).goTo();
-		$(section).*/
 	});
 }
+
+//Function used to fade in and fade out the map when clicking the map button. Also resizes the map.
 function handleMapButton(){
-	$('.js-map-button').unbind().click(function(event){
-		console.log('WHAT IS GOING ON?');
-		console.log(applicationState.mapOpen);
+	$('.js-map-button').unbind().on('click touchstart', function(event){
 		if(applicationState.mapOpen){
 			$('.js-main-map, .js-map-background').fadeOut(500);
 			applicationState.mapOpen=false;
@@ -1061,88 +796,69 @@ function handleMapButton(){
 		else{
 			if(applicationState.initialMap){
 				$('.js-main-map, .js-map-background').addClass('reveal-map').fadeIn(500);
-				//$('.main-map:before').fadeIn(500);
 				applicationState.initialMap=false;
 				$('.js-map-button').text("Close Map").addClass('mapOpen');
-				//googleMaps.maps.searchMap.map.setCenter(googleMaps.maps.searchMap.marker.getPosition());
 			}
 			else{
 				$('.js-main-map, .js-map-background').fadeIn(500);
 				$('.js-map-button').text("Close Map").addClass('mapOpen');
-				//googleMaps.maps.searchMap.map.getProjection();
 				google.maps.event.trigger(googleMaps.maps.searchMap.map, "resize");
 				googleMaps.maps.searchMap.map.panTo(googleMaps.maps.searchMap.marker.getPosition());
 			}
-			/*$('.main-map').addClass('reveal-map');*/
 			applicationState.mapOpen=true;
 		}
 	});
 }
+/***********************************************************
+* Application initialization functions
+************************************************************/
+
+//Function used to initialize the searchMap and render it for the first time
+function initMaps(response){
+      googleMaps.latlng = {lat: 36.204824, lng: 138.252924}; 
+      googleMaps.geocoder = new google.maps.Geocoder();
+      googleMaps.maps.searchMap.map=new google.maps.Map(document.getElementById('search-map'),
+			{center: googleMaps.latlng,
+			zoom: 8,
+			mapTypeId: 'terrain'});
+
+      googleMaps.maps.searchMap.marker=new google.maps.Marker({
+          position: googleMaps.latlng,
+          map: googleMaps.maps.searchMap.map,
+          icon: googleMaps.ICON_BASE_URL+googleMaps.icons.position, 
+          draggable: true,
+          title: 'Chosen Location'
+        });
+
+      google.maps.event.addDomListener(window, 'resize', function() {
+    	googleMaps.maps.searchMap.map.setCenter(googleMaps.maps.searchMap.marker.getPosition());
+	  });
+
+      googleMaps.placeService = new google.maps.places.PlacesService(googleMaps.maps.searchMap.map);
+
+  	  googleMaps.maps.searchMap.marker.addListener('dragend', function(event){
+  	  	renderPosition(googleMaps.maps.searchMap.marker.getPosition());
+  	  });
+
+  	  renderPosition(googleMaps.maps.searchMap.marker.getPosition());
+}
+
+//Initialization of API state variables and registration of event handlers after the document has been loaded
 $(document).ready(function(){
-	//$('.section-nav').fixMenu(0);
 	var flickerOptions={api_key: 'fce2cc179918f3569a6ceb86165c46c3'};
-	//var googleTranslateOptions={api_key: 'AIzaSyDCz6gKlHvkMprHXZ5gYtJvhiS9aUbDY9o', user_language: 'en'};
 	var yandexTranslateOptions={api_key: 'trnsl.1.1.20170105T091703Z.37443af0f3f26f82.813faf58301bf41263b49bbdad6b073a9f773941', user_language: 'en'};
 	var eventfulOptions={api_key: 'HNPxRfwzNrrMJCqD'};
 	var googleMapsOptions={api_key: 'AIzaSyDCz6gKlHvkMprHXZ5gYtJvhiS9aUbDY9o'};
 
 	flickr.init(flickerOptions);
-	//googleTranslate.init(googleMapsOptions);
 	yandexTranslate.init(yandexTranslateOptions);
 	eventful.init(eventfulOptions);
 	googleMaps.init(googleMapsOptions);
-	//geoCoder.init(googleOptions);
 
 	handleSearchSubmit();
 	handleNavButtons();
 	handleMarkerCheckBoxes();
 	handleImageRetrieval();
-	//handleHeaderClick();***
 	handleTextTranslation();
 	handleMapButton();
-	//handleEntertainment
 });
-
-/*function createCORSRequest(method, url) {
-  	var xhr = new XMLHttpRequest();
-  	if ("withCredentials" in xhr) {
-
-    	// Check if the XMLHttpRequest object has a "withCredentials" property.
-    	// "withCredentials" only exists on XMLHTTPRequest2 objects.
-    	xhr.open(method, url, true);
-
-  	} else if (typeof XDomainRequest != "undefined") {
-
-    		// Otherwise, check if XDomainRequest.
-    		// XDomainRequest only exists in IE, and is IE's way of making CORS requests.
-    		xhr = new XDomainRequest();
-    		xhr.open(method, url);
-
-  	} else {
-
-    	// Otherwise, CORS is not supported by the browser.
-    	xhr = null;
-
-  	}
-  		
-  	return xhr;
-}
-
-function makeCORSrequest(urlWithParameters){
-	var url=urlWithParameters;
-	var request = createCORSRequest('GET', url);
-	if (request) {
-		request.send();
-  	}
-  	else
-  		throw new Error('CORS not supported');
-  	
-  	//response handlers
-  	request.onload=function(response){
-  		console.log(response);
-  	}
-
-  	request.onerror=function(){
-  		throw new Error('There was an error making the request.');
-  	}
-}*/

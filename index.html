@@ -9,19 +9,16 @@
 	<link rel="stylesheet" type="text/css" href="styles/app.css">
 </head>
 <body>
-	<!--<header class="main-header">Travel Plan</header>-->
 	<nav class="js-section-nav section-nav">
 		<div class="main-header-right">
-		<header class="main-header">Travel Plan</header>
-		<img class="js-mobile-search-button mobile-search-button" src="images/search-image.png" alt="search-icon">
-		<div class="form-wrapper">
-		<form id="js-search-form">
-			<!--<header class="search-header">Search places of the world:</header>-->
-			<input class="js-search-input search-input" type="text" name="search-input" placeholder="e.g.: Japan">
-			<input class="js-search-submit search-submit" type="image" src="images/search-image.png" alt="Submit Form" />
-			<!--<button class="search-submit" type="submit"><img class="search-image" src="images/search-image.png"></button>-->
-		</form>
-		</div>
+			<header class="main-header">Travel Plan</header>
+			<img class="js-mobile-search-button mobile-search-button" src="images/search-image.png" alt="search-icon">
+			<div class="form-wrapper">
+				<form id="js-search-form">
+					<input class="js-search-input search-input" type="text" name="search-input" placeholder="e.g.: Japan">
+					<input class="js-search-submit search-submit" type="image" src="images/search-image.png" alt="Submit Form" />
+				</form>
+			</div>
 		</div>
 		<div class="nav-button-group">
 			<button class="js-map-button map-button">Map</button>
@@ -34,41 +31,18 @@
     				<div class="js-nav-button nav-button">Translator</div>
   			</div>
 		</div>
-		</div>
-		<!--<ul class="options">
-			<li class="map-button">
-				<span>Map</span>
-			</li>
-			<li class="nav-button">
-				<span>Nav</span>
-			</li>
-				<ul>
-					<li class="js-nav-button nav-button">Entertainment</li>
-					<li class="js-nav-button nav-button">Events</li>
-					<li class="js-nav-button nav-button">Images</li>
-					<li class="js-nav-button nav-button">Translator</li>
-				</ul>
-		</ul>-->
 	</nav>
+	<div class="js-bad-map-submit-request bad-map-request bad-submit hidden">The search term can be an address at the lowest level and a country at the highest level. The search must be in a google maps accepted from. (e.g. Tokyo, Japan or New York, NY)</div>
 	<main class="js-main-section main-section">
 		<div class="js-map-background map-background"></div>
 		<section class="js-main-map main-map">
-			<div class="js-bad-map-request bad-map-request hidden">The search term can be an address at the lowest level and a country at the highest level. Dragging the marker to the ocean will result in zero change.</div>
+			<div class="js-bad-map-drag-request bad-map-request bad-drag hidden">Dragging the marker to the ocean will result in no change to the map or related pages.</div>
 			<div class="js-marker-toggle marker-toggle"><div><input id="places" class="js-marker-check" type="checkbox" name="places"><label for="places">Places</label></div><div><input id="events" class="js-marker-check" type="checkbox" name="events"><label for="events">Events</label></div></div>
 			<div id="search-map"></div>
-			<!--<button class="js-find-images find-images" type="button">Retrieve Images</button>-->
 			<div class="js-location-description location-description">
 				<span class="property">Current Location</span>: <span class="js-address address">Japan</span>
 			</div>
 		</section>
-		<!--<section class="js-description description">
-		<header></header>
-		</section>-->
-		<!--<section class="js-images-section images-section">-->
-			<!--<header class="js-image-header image-header">Search Results: </header>-->
-			<!--<div class="js-image-listings image-listings">-->
-			<!--</div>-->
-		<!--</section>-->
 		<section class="js-top-attractions top-attractions">
 		</section>
 		<section class="js-top-events top-events hidden">
@@ -86,14 +60,13 @@
     		<a class="play-pause"></a>
     		<ol class="indicator"></ol>
     	</div>
-		<!--<section class="js-map map">
-		</section>-->
 		<section class="js-translation translation hidden">
-			<header class="js-translator-header translator-header">Language Translator: <span class="js-language language">Japanese</span><!--<div class="js-header-image header-image"></div>--><!--<img class="js-header-image header-image" src="images/green-plus-4.png" alt="show translator"/>--></header>
+			<header class="js-translator-header translator-header">Language Translator: <span class="js-language language">Japanese</span></header>
 			<div class="js-textbox">
 				<form id="js-translation-form">
-					<div class="js-textarea-button translate-input-choice"><span>Text</span></div>
-					<div class="js-textarea-button translate-input-choice"><span>Speech</span></div>
+					<!-- To later be used for buttons that allow for text or speech input into the text area -->
+					<!--<div class="js-textarea-button translate-input-choice"><span>Text</span></div>
+					<div class="js-textarea-button translate-input-choice"><span>Speech</span></div>-->
 					<textarea class="js-textarea textarea" rows="8" cols="50" placeholder="Enter/Say text to be translated..."></textarea>
 					<div class="buttonholder">
 						<button type='submit'>Submit Text</button>
@@ -102,9 +75,10 @@
 				<div class="js-translated-section translated-section">
 					<header>Translation:</header>
 					<p class="js-text-translation text-translation"></p>
-					<div class="buttonholder">
+					<!-- To later be used for playing back the translation in the Nationalities voice using Responsive.js/SpeechSynthesis -->
+					<!--<div class="buttonholder">
 						<button class="js-text-to-speech text-to-speech" type="button">Play Translation</button>
-					</div>
+					</div>-->
 				</div>
 			</div>
 		</section>
@@ -115,7 +89,8 @@
 	<script type="text/javascript"
 	src="https://viralpatel.net/blogs/demo/jquery/jquery.shorten.1.0.js"></script>
 	<script src="javascript/app.js"></script>
-	<script src='https://code.responsivevoice.org/responsivevoice.js'></script>
+	<!-- For future speech to text functionality -->
+	<!--<script src='https://code.responsivevoice.org/responsivevoice.js'></script>-->
 	<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDCz6gKlHvkMprHXZ5gYtJvhiS9aUbDY9o&libraries=places&callback=initMaps"
     async defer></script>
 </body>
