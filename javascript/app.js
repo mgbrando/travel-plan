@@ -260,22 +260,6 @@ var yandexTranslate={
 			});
 			return deferred.promise();
 	},
-	
-	//Function to later be used to speak back the translation in the appropriate voice and mannerism of the country
-	/*speakTranslation: function(){
-			$.ajax({
-				type: "GET",
-				url: this.BASE_URL+this.GETLANGS_EXT,
-				data: {key: this.config.api_key, ui: this.config.user_language},
-				dataType: "jsonp",
-				success: function(results){
-					var language=results.langs[yandexTranslate.current_language_sn];
-					if(language==='English')
-						language='US English';
-						responsiveVoice.speak($('.js-text-translation').text(), language+' Female');
-				}
-			});
-	},*/
 
 	//Function used to test if the current location has changed
 	locationChanged: function(currentLocation){
@@ -366,26 +350,23 @@ var googleMaps={
 	addPlaces: function(places){
 		var attractionContent=$(entertainmentTemplate);
 		var map=null;
+
 		if(this.maps.searchMap.placeMarkersOn){
 			map=this.maps.searchMap.map;
 		}
-			for(var i=0; i<places.length && i<10; i++){
-				googleMaps.maps.searchMap.placesMarkers[i] = new google.maps.Marker({
-          		position: places[i].geometry.location,
-          		icon: this.ICON_BASE_URL+(i+1)+'-'+this.icons.places,
-          		map: map,
-          		draggable: false,
-          		title: places[i].name
-        		});
+
+		for(var i=0; i<places.length && i<10; i++){
+			googleMaps.maps.searchMap.placesMarkers[i] = new google.maps.Marker({
+          	position: places[i].geometry.location,
+          	icon: this.ICON_BASE_URL+(i+1)+'-'+this.icons.places,
+          	map: map,
+          	draggable: false,
+          	title: places[i].name
+        	});
 				
-				this.addEntertainmentDetails(places[i], i, attractionContent);
+			this.addEntertainmentDetails(places[i], i, attractionContent);
+		}
 
-				//Function used to render the details for a place when a placemarker is clicked (Future)
-        		/*googleMaps.maps.searchMap.placesMarkers[i].addListener('click', function(event){
-        			renderPlaceDetails(places[i]);
-        		});*/
-
-			}
 			$('.js-entertainment').remove();
 			$('.js-top-attractions').append(attractionContent);
 	},
@@ -695,25 +676,13 @@ function handleSearchSubmit(){
 
 //Function used to show the blueimp gallery when a thumbnail image is clicked
 function handleImageRetrieval(){
-	//To be used as a click button for changing the images based off of position (Future)
-	/*$('.js-find-images').on('click touchstart', function(event){
-		flickr.searchPhotosByGeography(googleMaps.maps.searchMap.marker.getPosition());
-	});*/
-
 	var options={stretchImages: true};
+
 	$('.js-image-links').on('click', function(event){
 		if(target===this)
 			blueimp.Gallery(flickr.imageArray);
 	});
 }
-
-//Function used to toggle the translation header to show the translation text box (deprecated)
-/*function handleHeaderClick(){
-	$('.js-translator-header').on('click touchstart', function(event){
-		$(this).children('.js-header-image').toggleClass('header-image-clicked');
-		$(this).siblings('.js-textbox').toggleClass('hidden');
-	});
-}*/
 
 //Function used to show translation on submit in the translation section
 function handleTextTranslation(){
